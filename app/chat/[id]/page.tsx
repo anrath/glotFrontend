@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -16,6 +17,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 import {
   Card,
   CardContent,
@@ -39,7 +41,7 @@ import { Chat } from "@/components/chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Dashboard() {
-  const playlists = [
+  const conversations = [
     "All",
     "Favorites",
     "Recently Played",
@@ -54,6 +56,13 @@ export default function Dashboard() {
     "Recently Played",
     "Top 10",
   ];
+
+  /**
+    ==============================
+    Translations Visibility State
+    ==============================
+  */
+  const [translationsVisible, setTranslationsVisible] = useState(true);
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr] fixed overflow-hidden">
@@ -103,7 +112,7 @@ export default function Dashboard() {
               </h2>
               <ScrollArea className="h-[500px] px-1">
                 <div className="space-y-1 p-2">
-                  {playlists?.map((playlist, i) => (
+                  {conversations?.map((playlist, i) => (
                     <Button
                       key={`${playlist}-${i}`}
                       variant="ghost"
@@ -197,41 +206,41 @@ export default function Dashboard() {
                   Products{" "}
                 </Link>
               </nav>
-            {/* Conversations by ID */}
-            <div className="py-2">
-              <h2 className="relative text-lg font-semibold tracking-tight">
-                Conversations
-              </h2>
-              <ScrollArea className="h-[300px]">
-                <div className="space-y-1 pr-3">
-                  {playlists?.map((playlist, i) => (
-                    <Button
-                      key={`${playlist}-${i}`}
-                      variant="ghost"
-                      className="w-full justify-start font-normal"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-2 h-4 w-4"
+              {/* Conversations by ID */}
+              <div className="py-2">
+                <h2 className="relative text-lg font-semibold tracking-tight">
+                  Conversations
+                </h2>
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-1 pr-3">
+                    {conversations?.map((playlist, i) => (
+                      <Button
+                        key={`${playlist}-${i}`}
+                        variant="ghost"
+                        className="w-full justify-start font-normal"
                       >
-                        <path d="M21 15V6" />
-                        <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                        <path d="M12 12H3" />
-                        <path d="M16 6H3" />
-                        <path d="M12 18H3" />
-                      </svg>
-                      {playlist}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-2 h-4 w-4"
+                        >
+                          <path d="M21 15V6" />
+                          <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                          <path d="M12 12H3" />
+                          <path d="M16 6H3" />
+                          <path d="M12 18H3" />
+                        </svg>
+                        {playlist}
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
 
               <div className="mt-auto">
                 <Card>
@@ -251,7 +260,7 @@ export default function Dashboard() {
               </div>
             </SheetContent>
           </Sheet>
-          <div className="w-full flex-1">
+          {/* <div className="w-full flex-1">
             <form>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -262,6 +271,20 @@ export default function Dashboard() {
                 />
               </div>
             </form>
+          </div> */}
+          <div className="w-full flex-1">
+            <Toggle
+              className="bg-primary"
+              variant="outline"
+              aria-label="Toggle Translations"
+              pressed={!translationsVisible}
+              onPressedChange={() => {
+                setTranslationsVisible(!translationsVisible);
+              }}
+            >
+              Toggle Translations
+            </Toggle>
+
           </div>
           <ChatDrawerDialog />
           <DropdownMenu>
@@ -283,11 +306,13 @@ export default function Dashboard() {
         </header>
 
         {/* Main Content */}
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-y-auto max-h-screen">
+        <main className="scroll-area flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-y-auto max-h-screen">
           <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Chat with Glot</h1>
+            <h1 className="text-lg font-semibold md:text-2xl">
+              Chat with Glot
+            </h1>
           </div>
-          <Chat />
+          <Chat translationsVisible={translationsVisible} />
         </main>
       </div>
     </div>

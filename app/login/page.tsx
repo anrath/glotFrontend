@@ -1,13 +1,34 @@
-import Image from "next/image"
-import Link from "next/link"
+import Image from "next/image";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { auth } from "@/app/api/auth/[...nextauth]";
 
-export default function Dashboard() {
+export default async function LoginPage() {
+  const session = await auth();
+
+  if (session) {
+    return (
+      <div>
+        Signed in as {session.user.email} <br />
+        <button onClick={() => signOut()}>Sign out</button>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+    <div className="h-screen w-full lg:grid lg:grid-cols-2">
+      <div className="flex flex-col rounded-md bg-neutral-100">
+        <div className="p-4 font-bold rounded-t-md bg-neutral-200">
+          Current Session
+        </div>
+        <pre className="py-6 px-4 whitespace-pre-wrap break-all">
+          {JSON.stringify(session, null, 2)}
+        </pre>
+      </div>
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
@@ -41,13 +62,21 @@ export default function Dashboard() {
             <Button type="submit" className="w-full">
               Login
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => signIn("google")}
+            >
               Login with Google
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="#" className="underline">
+            <Link
+              href="#"
+              className="underline"
+              onClick={() => signIn("credentials", { email: "", password: "" })}
+            >
               Sign up
             </Link>
           </div>
@@ -55,7 +84,7 @@ export default function Dashboard() {
       </div>
       <div className="hidden bg-muted lg:block">
         <Image
-          src="/placeholder.svg"
+          src="/pakistan.jpg"
           alt="Image"
           width="1920"
           height="1080"
@@ -63,5 +92,5 @@ export default function Dashboard() {
         />
       </div>
     </div>
-  )
+  );
 }

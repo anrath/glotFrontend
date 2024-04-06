@@ -25,50 +25,68 @@ import { Input } from "@/components/ui/input";
 export interface ChatMessage {
   user_message: string;
   translated_user_message?: string;
+  audio_user_data: string;
   ai_message: string;
   translated_ai_message?: string;
-  audio_data: string;
+  audio_ai_data: string;
 }
 
-export function Chat() {
-  const [isEditing, setIsEditing] = useState(false);
-  const [lastMessage, setLastMessage] = useState("");
-  const [editedMessage, setEditedMessage] = useState("");
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [translationsVisble, setTranslationsVisible] = useState(true);
-  const lastAudioRef = useRef(null); // Reference for the audio element of the last message
+export function scrollBottom() {
+  const chatMessages = document.querySelector(".scroll-area");
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
+export function Chat({ translationsVisible }) {
+  /**
+    ==============================
+    Chat Messages
+    ==============================
+  */
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       user_message: "Hello, how are you?",
       translated_user_message: "Hola, ¿cómo estás?",
-      audio_data: "Base64EncodedStringOfAudio", // Simulated as a base64 string
+      audio_user_data: "Base64EncodedStringOfAudio", // Simulated as a base64 string
       ai_message: "I'm fine, thank you!",
       translated_ai_message: "Estoy bien, ¡gracias!",
+      audio_ai_data: "Base64EncodedStringOfAudio",
     },
     {
       user_message:
         "What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today?",
-      translated_user_message: "¿Cómo está el clima hoy?",
-      audio_data: "Base64EncodedStringOfAudio",
+      translated_user_message: "¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ",
+      audio_user_data: "Base64EncodedStringOfAudio",
       ai_message: "It's sunny and warm outside.",
       translated_ai_message: "Está soleado y cálido afuera.",
+      audio_ai_data: "Base64EncodedStringOfAudio",
     },
     {
       user_message: "Can you help me with my homework?",
       translated_user_message: "¿Puedes ayudarme con mi tarea?",
-      audio_data: "Base64EncodedStringOfAudio",
+      audio_user_data: "Base64EncodedStringOfAudio",
       ai_message: "Sure, what do you need help with?",
       translated_ai_message: "Claro, ¿con qué necesitas ayuda?",
+      audio_ai_data: "Base64EncodedStringOfAudio",
     },
     {
       user_message: "Thank you for your assistance.",
       translated_user_message: "Gracias por tu ayuda.",
-      audio_data: "Base64EncodedStringOfAudio",
+      audio_user_data: "Base64EncodedStringOfAudio",
       ai_message: "You're welcome!",
       translated_ai_message: "¡De nada!",
+      audio_ai_data: "Base64EncodedStringOfAudio",
     },
   ]);
+
+  /**
+    ==============================
+    Edits
+    ==============================
+  */
+  const [isEditing, setIsEditing] = useState(false);
+  const [lastMessage, setLastMessage] = useState("");
+  const [editedMessage, setEditedMessage] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
 
   const handleEdit = (message, index) => {
     setIsEditing(true);
@@ -99,6 +117,7 @@ export function Chat() {
       updateLastMessage(response.data);
       setIsEditing(false);
       setEditingIndex(null);
+      scrollBottom();
     } catch (error) {
       console.error("Error updating message:", error);
     }
@@ -109,14 +128,45 @@ export function Chat() {
     setEditingIndex(null);
   };
 
-  // Automatically play the audio of the last message if it exists
+  /**
+    ==============================
+    Audio Playback
+    ==============================
+  */
+  const lastAudioRef = useRef(null);
+
   useEffect(() => {
     if (lastAudioRef.current) {
       lastAudioRef.current
         .play()
         .catch((error) => console.error("Audio playback error:", error));
     }
-  }, [messages]); // This effect depends on the messages array
+  }, [messages]);
+
+  /**
+    ==============================
+    New Message Form
+    ==============================
+  */
+  const [newMessage, setNewMessage] = useState("");
+
+  const handleSubmitNewMessage = (event) => {
+    if (!newMessage.trim()) {
+      return; // Prevent submitting empty messages
+    }
+    event.preventDefault(); // Prevent the default form submit action
+    console.log("Form submitted with message:", newMessage); // Log the current message state
+    setNewMessage(""); // Clear the message input field
+    scrollBottom();
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      // Check for Enter key without Shift
+      event.preventDefault(); // Prevent adding a new line
+      handleSubmitNewMessage(event); // Submit the form with the current message
+    }
+  };
 
   return (
     <div className="chat-messages">
@@ -137,6 +187,18 @@ export function Chat() {
                     <span>
                       <strong>You</strong>
                     </span>
+                    <div className="ml-2">
+                      {msg.audio_user_data && (
+                        <AudioPlayer
+                          audioData={msg.audio_user_data}
+                          audioRef={
+                            index === messages.length - 1
+                              ? lastAudioRef
+                              : undefined
+                          }
+                        />
+                      )}
+                    </div>
                     <div className="ml-2 mr-auto">
                       {isEditing ? (
                         editingIndex === index ? (
@@ -155,8 +217,9 @@ export function Chat() {
                           <Button
                             disabled
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 bg-background"
                             onClick={() => handleEdit(msg, index)}
+                            // style={{ background: "not-allowed" }}
                           >
                             <PencilLine className="h-4 w-4" />
                             <span className="sr-only">Edit Message</span>
@@ -176,16 +239,24 @@ export function Chat() {
                       )}
                     </div>
                   </div>
-                  <p className="mb-1">
+                  <div className="mb-1">
                     {isEditing && editingIndex === index ? (
                       <>
-                        <form className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring">
+                        <form className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring" onSubmit={handleSave}>
                           <Label htmlFor="editMessage" className="sr-only">
                             Edit Message
                           </Label>
                           <Textarea
                             id="message"
                             value={editedMessage}
+                            onChange={(e) => setEditedMessage(e.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" && !event.shiftKey) {
+                                // Check for Enter key without Shift
+                                event.preventDefault(); // Prevent adding a new line
+                                handleSave(); // Submit the form with the current message
+                              }
+                            }}
                             className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
                           />
                           <div className="flex items-center p-3 pt-0">
@@ -218,8 +289,8 @@ export function Chat() {
                     ) : (
                       msg.user_message
                     )}
-                  </p>
-                  <p className="translated-message">
+                  </div>
+                  <p className={`translated-message ${translationsVisible ? "block" : "hidden"}`}>
                     {msg.translated_user_message}
                   </p>
                 </div>
@@ -233,15 +304,16 @@ export function Chat() {
                       <strong>Glot</strong>
                     </span>
                     <div className="ml-2 mr-auto">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 color-btn"
-                        onClick={console.log("clicked")}
-                      >
-                        <Volume2 className="h-4 w-4" />
-                        <span className="sr-only">Edit Message</span>
-                      </Button>
+                      {msg.audio_ai_data && (
+                        <AudioPlayer
+                          audioData={msg.audio_ai_data}
+                          audioRef={
+                            index === messages.length - 1
+                              ? lastAudioRef
+                              : undefined
+                          }
+                        />
+                      )}
                     </div>
                   </div>
                   <p className="mb-1">{msg.ai_message}</p>
@@ -265,13 +337,19 @@ export function Chat() {
       </div>
 
       {/* Chat Input */}
-      <div className="sticky bottom-10">
-        <form className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring">
+      <div className="sticky bottom-12">
+        <form
+          onSubmit={handleSubmitNewMessage}
+          className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+        >
           <Label htmlFor="message" className="sr-only">
             Message
           </Label>
           <Textarea
             id="message"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Type your message here..."
             className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
           />
@@ -297,3 +375,36 @@ export function Chat() {
     </div>
   );
 }
+
+const AudioPlayer = ({ audioData, audioRef }) => {
+  const internalAudioRef = useRef(null);
+  const ref = audioRef || internalAudioRef;
+
+  const togglePlay = () => {
+    if (ref.current) {
+      if (ref.current.paused) {
+        ref.current.play();
+      } else {
+        ref.current.pause();
+      }
+    }
+  };
+
+  return (
+    <span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 color-btn"
+        onClick={togglePlay}
+      >
+        <Volume2 className="h-4 w-4" />
+        <span className="sr-only">Play Audio</span>
+      </Button>
+      <audio ref={ref} style={{ display: "none" }}>
+        <source src={`data:audio/mp3;base64,${audioData}`} type="audio/mp3" />
+        Your browser does not support the audio element.
+      </audio>
+    </span>
+  );
+};
