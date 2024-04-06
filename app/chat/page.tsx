@@ -71,6 +71,7 @@ export default function Dashboard() {
               <ModeToggle />
             </div>
           </div>
+          {/* Desktop Sidebar */}
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <Link
@@ -85,7 +86,7 @@ export default function Dashboard() {
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LineChart className="h-4 w-4" />
-                Analytics
+                Learning Progress
               </Link>
               <Link
                 href="#"
@@ -95,7 +96,7 @@ export default function Dashboard() {
                 Products{" "}
               </Link>
             </nav>
-            {/*  */}
+            {/* Conversations by ID */}
             <div className="py-2">
               <h2 className="relative px-7 text-lg font-semibold tracking-tight">
                 Conversations
@@ -164,6 +165,7 @@ export default function Dashboard() {
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
+            {/* Mobile Sidebar */}
             <SheetContent side="left" className="flex flex-col">
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
@@ -171,7 +173,7 @@ export default function Dashboard() {
                   className="flex items-center gap-2 text-lg font-semibold"
                 >
                   <Package2 className="h-6 w-6" />
-                  <span className="sr-only">Acme Inc</span>
+                  <span className="sr-only">PolyGlot</span>
                 </Link>
                 <Link
                   href="#"
@@ -182,36 +184,55 @@ export default function Dashboard() {
                 </Link>
                 <Link
                   href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  Orders
-                  <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                    6
-                  </Badge>
-                </Link>
-                <Link
-                  href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-                >
-                  <Package className="h-5 w-5" />
-                  Products
-                </Link>
-                <Link
-                  href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-                >
-                  <Users className="h-5 w-5" />
-                  Customers
-                </Link>
-                <Link
-                  href="#"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                 >
                   <LineChart className="h-5 w-5" />
-                  Analytics
+                  Learning Progress
+                </Link>
+                <Link
+                  href="#"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-primary bg-muted hover:text-foreground"
+                >
+                  <Package className="h-5 w-5" />
+                  Products{" "}
                 </Link>
               </nav>
+            {/* Conversations by ID */}
+            <div className="py-2">
+              <h2 className="relative text-lg font-semibold tracking-tight">
+                Conversations
+              </h2>
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-1 pr-3">
+                  {playlists?.map((playlist, i) => (
+                    <Button
+                      key={`${playlist}-${i}`}
+                      variant="ghost"
+                      className="w-full justify-start font-normal"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2 h-4 w-4"
+                      >
+                        <path d="M21 15V6" />
+                        <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                        <path d="M12 12H3" />
+                        <path d="M16 6H3" />
+                        <path d="M12 18H3" />
+                      </svg>
+                      {playlist}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
               <div className="mt-auto">
                 <Card>
                   <CardHeader>
@@ -236,7 +257,7 @@ export default function Dashboard() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search products..."
+                  placeholder="Search chats..."
                   className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
                 />
               </div>
@@ -264,7 +285,7 @@ export default function Dashboard() {
         {/* Main Content */}
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-y-auto max-h-screen">
           <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Inventory</h1>
+            <h1 className="text-lg font-semibold md:text-2xl">Chat with Glot</h1>
           </div>
           <Chat />
         </main>
