@@ -58,3 +58,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .message {
+    @apply bg-muted/100;
+  }
+}
