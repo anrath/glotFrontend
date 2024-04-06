@@ -63,4 +63,11 @@
   .message {
     @apply bg-muted/100;
   }
+
+  .translated-message {
+    @apply text-sm text-gray-400
+  }
+  .color-btn {
+    @apply bg-blue-700 hover:bg-blue-950
+  }
 }

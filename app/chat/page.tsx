@@ -36,8 +36,25 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChatDrawerDialog } from "@/components/settings";
 import { ModeToggle } from "@/components/dark-toggle";
 import { Chat } from "@/components/chat";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Dashboard() {
+  const playlists = [
+    "All",
+    "Favorites",
+    "Recently Played",
+    "Top 10",
+    "Favorites",
+    "Recently Played",
+    "Top 10",
+    "Favorites",
+    "Recently Played",
+    "Top 10",
+    "Favorites",
+    "Recently Played",
+    "Top 10",
+  ];
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr] fixed overflow-hidden">
       {/* <div className="min-h-screen w-full"> */}
@@ -48,12 +65,11 @@ export default function Dashboard() {
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
-              <span className="">Acme Inc</span>
+              <span className="">PolyGlot</span>
             </Link>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
+            <div className="ml-auto">
+              <ModeToggle />
+            </div>
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -68,42 +84,59 @@ export default function Dashboard() {
                 href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <ShoppingCart className="h-4 w-4" />
-                Orders
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                  6
-                </Badge>
+                <LineChart className="h-4 w-4" />
+                Analytics
               </Link>
               <Link
                 href="#"
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
-                <Package className="h-4 w-4" />
+                <Users className="h-4 w-4" />
                 Products{" "}
               </Link>
-              <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Users className="h-4 w-4" />
-                Customers
-              </Link>
-              <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <LineChart className="h-4 w-4" />
-                Analytics
-              </Link>
             </nav>
+            {/*  */}
+            <div className="py-2">
+              <h2 className="relative px-7 text-lg font-semibold tracking-tight">
+                Conversations
+              </h2>
+              <ScrollArea className="h-[500px] px-1">
+                <div className="space-y-1 p-2">
+                  {playlists?.map((playlist, i) => (
+                    <Button
+                      key={`${playlist}-${i}`}
+                      variant="ghost"
+                      className="w-full justify-start font-normal"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2 h-4 w-4"
+                      >
+                        <path d="M21 15V6" />
+                        <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                        <path d="M12 12H3" />
+                        <path d="M16 6H3" />
+                        <path d="M12 18H3" />
+                      </svg>
+                      {playlist}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
           <div className="mt-auto p-4">
             <Card>
               <CardHeader className="p-2 pt-0 md:p-4">
                 <CardTitle>Upgrade to Pro</CardTitle>
                 <CardDescription>
-                  Unlock all features and get unlimited access to our support
-                  team.
+                  Unlock all features and get unlimited access to Glot.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
@@ -120,7 +153,6 @@ export default function Dashboard() {
       <div className="flex flex-col">
         {/* Navbar */}
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <ModeToggle />
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -234,7 +266,7 @@ export default function Dashboard() {
           <div className="flex items-center">
             <h1 className="text-lg font-semibold md:text-2xl">Inventory</h1>
           </div>
-            <Chat />
+          <Chat />
         </main>
       </div>
     </div>
