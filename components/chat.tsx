@@ -36,6 +36,17 @@ export function scrollBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+export function typeWriter() {
+  let i = 0;
+  let txt = 'Lorem ipsum typing effect!'; /* The text */
+  let speed = 50; /* The speed/duration of the effect in milliseconds */
+  if (i < txt.length) {
+    document.getElementById("demo").innerHTML += txt.charAt(i);
+    i++;
+    setTimeout(typeWriter, speed);
+  }
+}
+
 export function Chat({ translationsVisible }) {
   /**
     ==============================
@@ -158,6 +169,7 @@ export function Chat({ translationsVisible }) {
     console.log("Form submitted with message:", newMessage); // Log the current message state
     setNewMessage(""); // Clear the message input field
     scrollBottom();
+    typeWriter();
   };
 
   const handleKeyDown = (event) => {
@@ -167,6 +179,34 @@ export function Chat({ translationsVisible }) {
       handleSubmitNewMessage(event); // Submit the form with the current message
     }
   };
+
+  function typeWriter(): void {
+    const speed: number = 50;                         // Speed of the effect in milliseconds
+  
+    // Retrieve the last '.ai-message' element on the page
+    const nodes: NodeList | null = document.querySelectorAll('.ai-message')
+  
+    if (!nodes) {
+      console.error('No element found with the class .ai-message');
+      return;
+    }
+    const lastMessage = nodes[nodes.length- 1];
+
+    const txt: string = lastMessage.innerText; // Text to write
+    let i: number = 0; // Current position in the text
+    lastMessage.innerHTML = ''; // Clear the text
+    // Function to write text one character at a time
+    const animateText = () => {
+      if (i < txt.length) {
+        lastMessage.innerHTML += txt.charAt(i);
+        i++;
+        setTimeout(animateText, speed);
+      }
+    };
+  
+    animateText();
+  }
+  
 
   return (
     <div className="chat-messages">
@@ -316,7 +356,7 @@ export function Chat({ translationsVisible }) {
                       )}
                     </div>
                   </div>
-                  <p className="mb-1">{msg.ai_message}</p>
+                  <p className="ai-message mb-1">{msg.ai_message}</p>
                   <p className="translated-message">
                     {msg.translated_ai_message}
                   </p>

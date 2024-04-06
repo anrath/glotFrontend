@@ -38,6 +38,76 @@ import { ModeToggle } from "@/components/dark-toggle";
 import { Chat } from "@/components/chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+export const Sidebar2 = () => {
+  const conversations = [
+    "All",
+    "Favorites",
+    "Recently Played",
+    "Top 10",
+    "More...",
+  ];
+  return (
+    <div className="hidden md:block overflow-y-auto border-r bg-muted/40 max-h-screen">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center border-b px-4 h-14 lg:px-6 lg:h-[60px]">
+          <Link href="/" className="flex items-center gap-2 font-semibold">
+            {/* Logo and site title */}
+            <span>PolyGlot</span>
+          </Link>
+          <div className="ml-auto">
+            {/* Theme toggle */}
+            <ModeToggle />
+          </div>
+        </div>
+        <ScrollArea className="flex-1">
+          <nav className="grid px-2 text-sm font-medium lg:px-4">
+            {/* Navigation Links */}
+          </nav>
+          <div className="py-2">
+            <h2 className="text-lg font-semibold tracking-tight">
+              Conversations
+            </h2>
+            {conversations.map((conv, i) => (
+              <Button
+                key={conv + i}
+                className="w-full justify-start font-normal"
+              >
+                {conv}
+              </Button>
+            ))}
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+            <Button className="w-full justify-start font-normal">blah</Button>
+          </div>
+        </ScrollArea>
+        <div className="mt-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upgrade to Pro</CardTitle>
+              <CardDescription>
+                Unlock all features and get unlimited access to our support
+                team.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button size="sm" className="w-full">
+                Upgrade
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const Sidebar = () => {
   const conversations = [
     "All",
@@ -57,6 +127,7 @@ export const Sidebar = () => {
   return (
     <div className="hidden border-r bg-muted/40 md:block overflow-y-auto">
       <div className="flex h-full max-h-screen flex-col gap-2">
+      {/* <div className="flex flex-col h-full"> */}
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Package2 className="h-6 w-6" />
@@ -96,7 +167,8 @@ export const Sidebar = () => {
             <h2 className="relative px-7 text-lg font-semibold tracking-tight">
               Conversations
             </h2>
-            <ScrollArea className="h-[500px] px-1">
+            {/* <ScrollArea className="px-1 h-[500px] max-h-[50vh]"> */}
+            <ScrollArea className="lg:h-[50vh] sm:h-[25vh]">
               <div className="space-y-1 p-2">
                 {conversations?.map((playlist, i) => (
                   <Button
@@ -208,7 +280,7 @@ export const SidebarMobile = () => {
           <h2 className="relative text-lg font-semibold tracking-tight">
             Conversations
           </h2>
-          <ScrollArea className="h-[300px]">
+          <ScrollArea className="h-[40vh]">
             <div className="space-y-1 pr-3">
               {conversations?.map((playlist, i) => (
                 <Button
