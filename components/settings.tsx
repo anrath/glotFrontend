@@ -1,5 +1,3 @@
-import * as React from "react"
-
 import { cn } from "@/lib/utils"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
@@ -23,14 +21,30 @@ import {
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import React, { useState } from "react"
 
 export function ChatDrawerDialog() {
   const [open, setOpen] = React.useState(false)
   const isDesktop = useMediaQuery("(min-width: 768px)")
 
+  // state variables needed
+  const [newMessage, setNewMessage] = useState("");
+
+  const updateSettings = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axios.post("/update_settings", event);
+      console.log(response.data);
+      setOpen(false);
+    } catch (error) {
+      console.error("Error updating settings:", error);
+    }
+  };
+
+
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(e) => updateSettings(e)}>
         <DialogTrigger asChild>
           <Button variant="outline">Edit Chat Profile</Button>
         </DialogTrigger>

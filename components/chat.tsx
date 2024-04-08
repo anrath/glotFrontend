@@ -1,14 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 
 import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
-import {
-  CornerDownLeft,
-  Mic,
-  Paperclip,
-  PencilLine,
-  Volume2,
-  X,
-} from "lucide-react";
+import { CornerDownLeft, Mic, PencilLine, Volume2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,16 +12,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import axios from "axios";
-import { Input } from "@/components/ui/input";
+import { axiosInstance } from "@/components/axios-instance";
 
 export interface ChatMessage {
   user_message: string;
-  translated_user_message?: string;
+  translated_user_message: string;
   audio_user_data: string;
   ai_message: string;
-  translated_ai_message?: string;
+  translated_ai_message: string;
   audio_ai_data: string;
+  wiki_user_data?: string;
+  wiki_ai_data?: string;
+}
+
+export interface WikiData {
+  wiki_user_data?: Array<any>;
+  wiki_ai_data?: Array<any>;
 }
 
 export function scrollBottom() {
@@ -38,7 +37,7 @@ export function scrollBottom() {
 
 export function typeWriter() {
   let i = 0;
-  let txt = 'Lorem ipsum typing effect!'; /* The text */
+  let txt = "Lorem ipsum typing effect!"; /* The text */
   let speed = 50; /* The speed/duration of the effect in milliseconds */
   if (i < txt.length) {
     document.getElementById("demo").innerHTML += txt.charAt(i);
@@ -53,41 +52,8 @@ export function Chat({ translationsVisible }) {
     Chat Messages
     ==============================
   */
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      user_message: "Hello, how are you?",
-      translated_user_message: "Hola, ¿cómo estás?",
-      audio_user_data: "Base64EncodedStringOfAudio", // Simulated as a base64 string
-      ai_message: "I'm fine, thank you!",
-      translated_ai_message: "Estoy bien, ¡gracias!",
-      audio_ai_data: "Base64EncodedStringOfAudio",
-    },
-    {
-      user_message:
-        "What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today? What is the weather like today?",
-      translated_user_message: "¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ¿Cómo está el clima hoy? ",
-      audio_user_data: "Base64EncodedStringOfAudio",
-      ai_message: "It's sunny and warm outside.",
-      translated_ai_message: "Está soleado y cálido afuera.",
-      audio_ai_data: "Base64EncodedStringOfAudio",
-    },
-    {
-      user_message: "Can you help me with my homework?",
-      translated_user_message: "¿Puedes ayudarme con mi tarea?",
-      audio_user_data: "Base64EncodedStringOfAudio",
-      ai_message: "Sure, what do you need help with?",
-      translated_ai_message: "Claro, ¿con qué necesitas ayuda?",
-      audio_ai_data: "Base64EncodedStringOfAudio",
-    },
-    {
-      user_message: "Thank you for your assistance.",
-      translated_user_message: "Gracias por tu ayuda.",
-      audio_user_data: "Base64EncodedStringOfAudio",
-      ai_message: "You're welcome!",
-      translated_ai_message: "¡De nada!",
-      audio_ai_data: "Base64EncodedStringOfAudio",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [wikiData, setWikiData] = useState<WikiData[]>([]);
 
   /**
     ==============================
@@ -121,7 +87,7 @@ export function Chat({ translationsVisible }) {
     }
 
     try {
-      const response = await axios.post("/edit_last_message", {
+      const response = await axiosInstance.post("/edit_last_message", {
         message: editedMessage,
       });
       console.log("Updated message:", response.data);
@@ -146,13 +112,13 @@ export function Chat({ translationsVisible }) {
   */
   const lastAudioRef = useRef(null);
 
-  useEffect(() => {
-    if (lastAudioRef.current) {
-      lastAudioRef.current
-        .play()
-        .catch((error) => console.error("Audio playback error:", error));
-    }
-  }, [messages]);
+  // useEffect(() => {
+  //   if (lastAudioRef.current) {
+  //     lastAudioRef.current
+  //       .play()
+  //       .catch((error) => console.error("Audio playback error:", error));
+  //   }
+  // }, [messages]);
 
   /**
     ==============================
@@ -161,15 +127,69 @@ export function Chat({ translationsVisible }) {
   */
   const [newMessage, setNewMessage] = useState("");
 
-  const handleSubmitNewMessage = (event) => {
+  const handleSubmitNewMessage = async (event) => {
     if (!newMessage.trim()) {
       return; // Prevent submitting empty messages
     }
     event.preventDefault(); // Prevent the default form submit action
-    console.log("Form submitted with message:", newMessage); // Log the current message state
-    setNewMessage(""); // Clear the message input field
-    scrollBottom();
-    typeWriter();
+
+    try {
+      // Sending the initial message and receiving primary response data
+      const response = await axiosInstance.post("/send_message", {
+        message: newMessage,
+      });
+      console.log("New message sent:", response.data);
+
+      // Update messages with initial data
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          ...response.data,
+          wiki_user_data: "Loading...",
+          wiki_ai_data: "Loading...",
+        },
+      ]);
+
+      // Clear the message input field
+      setNewMessage("");
+      scrollBottom();
+
+      setTimeout(typeWriter, 100);
+
+      // Function to fetch wiki data asynchronously
+      const fetchWikiData = async (sentence, type) => {
+        try {
+          const result = await axiosInstance.post("/get_wiki_data", {
+            sentence: sentence,
+            language: "english",
+          });
+          console.log(type === "user" ? "wiki user:" : "wiki ai:", result.data);
+          return result.data;
+        } catch (error) {
+          console.error(`Error fetching wiki data for ${type}:`, error);
+          return `Failed to load data for ${type}`; // Fallback text in case of error
+        }
+      };
+
+      // Asynchronously update wiki data without blocking UI updates
+      const userWikiData = fetchWikiData(newMessage, "user");
+      const aiWikiData = fetchWikiData(response.data.ai_message, "ai");
+
+      Promise.all([userWikiData, aiWikiData]).then(([userWiki, aiWiki]) => {
+        setMessages((prevMessages) => {
+          const newMessages = [...prevMessages];
+          const lastIndex = newMessages.length - 1;
+          newMessages[lastIndex] = {
+            ...newMessages[lastIndex],
+            wiki_user_data: userWiki,
+            wiki_ai_data: aiWiki,
+          };
+          return newMessages;
+        });
+      });
+    } catch (error) {
+      console.error("Error sending initial message:", error);
+    }
   };
 
   const handleKeyDown = (event) => {
@@ -181,20 +201,20 @@ export function Chat({ translationsVisible }) {
   };
 
   function typeWriter(): void {
-    const speed: number = 50;                         // Speed of the effect in milliseconds
-  
+    const speed: number = 50; // Speed of the effect in milliseconds
+
     // Retrieve the last '.ai-message' element on the page
-    const nodes: NodeList | null = document.querySelectorAll('.ai-message')
-  
+    const nodes: NodeList | null = document.querySelectorAll(".ai-message");
+
     if (!nodes) {
-      console.error('No element found with the class .ai-message');
+      console.error("No element found with the class .ai-message");
       return;
     }
-    const lastMessage = nodes[nodes.length- 1];
+    const lastMessage = nodes[nodes.length - 1];
 
     const txt: string = lastMessage.innerText; // Text to write
     let i: number = 0; // Current position in the text
-    lastMessage.innerHTML = ''; // Clear the text
+    lastMessage.innerHTML = ""; // Clear the text
     // Function to write text one character at a time
     const animateText = () => {
       if (i < txt.length) {
@@ -203,10 +223,9 @@ export function Chat({ translationsVisible }) {
         setTimeout(animateText, speed);
       }
     };
-  
+
     animateText();
   }
-  
 
   return (
     <div className="chat-messages">
@@ -231,11 +250,8 @@ export function Chat({ translationsVisible }) {
                       {msg.audio_user_data && (
                         <AudioPlayer
                           audioData={msg.audio_user_data}
-                          audioRef={
-                            index === messages.length - 1
-                              ? lastAudioRef
-                              : undefined
-                          }
+                          audioRef={null}
+                          autoPlay={false}
                         />
                       )}
                     </div>
@@ -282,7 +298,10 @@ export function Chat({ translationsVisible }) {
                   <div className="mb-1">
                     {isEditing && editingIndex === index ? (
                       <>
-                        <form className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring" onSubmit={handleSave}>
+                        <form
+                          className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+                          onSubmit={handleSave}
+                        >
                           <Label htmlFor="editMessage" className="sr-only">
                             Edit Message
                           </Label>
@@ -330,7 +349,11 @@ export function Chat({ translationsVisible }) {
                       msg.user_message
                     )}
                   </div>
-                  <p className={`translated-message ${translationsVisible ? "block" : "hidden"}`}>
+                  <p
+                    className={`translated-message ${
+                      translationsVisible ? "block" : "hidden"
+                    }`}
+                  >
                     {msg.translated_user_message}
                   </p>
                 </div>
@@ -352,9 +375,10 @@ export function Chat({ translationsVisible }) {
                               ? lastAudioRef
                               : undefined
                           }
+                          autoPlay={index === messages.length - 1}
                         />
                       )}
-                    </div>
+                    </div>{" "}
                   </div>
                   <p className="ai-message mb-1">{msg.ai_message}</p>
                   <p className="translated-message">
@@ -416,9 +440,18 @@ export function Chat({ translationsVisible }) {
   );
 }
 
-const AudioPlayer = ({ audioData, audioRef }) => {
+const AudioPlayer = ({ audioData, audioRef, autoPlay = false }) => {
   const internalAudioRef = useRef(null);
   const ref = audioRef || internalAudioRef;
+
+  useEffect(() => {
+    // Automatically play audio if autoPlay is true
+    if (autoPlay && ref.current) {
+      ref.current
+        .play()
+        .catch((error) => console.error("Auto-play error:", error));
+    }
+  }, [audioData, autoPlay, ref]);
 
   const togglePlay = () => {
     if (ref.current) {

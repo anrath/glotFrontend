@@ -1,30 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
-import {
-  Bell,
-  CircleUser,
-  Home,
-  LineChart,
-  Menu,
-  Package,
-  Package2,
-  Search,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
+import { CircleUser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,30 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChatDrawerDialog } from "@/components/settings";
-import { ModeToggle } from "@/components/dark-toggle";
 import { Chat } from "@/components/chat";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sidebar, SidebarMobile } from "@/components/sidebar";
 
-export default function Dashboard() {
-  const conversations = [
-    "All",
-    "Favorites",
-    "Recently Played",
-    "Top 10",
-    "Favorites",
-    "Recently Played",
-    "Top 10",
-    "Favorites",
-    "Recently Played",
-    "Top 10",
-    "Favorites",
-    "Recently Played",
-    "Top 10",
-  ];
+export default function ChatWindow() {
+
   /**
     ==============================
     Translations Visibility State
