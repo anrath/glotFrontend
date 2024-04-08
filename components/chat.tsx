@@ -13,6 +13,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { axiosInstance } from "@/components/axios-instance";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 export interface ChatMessage {
   user_message: string;
@@ -25,25 +30,14 @@ export interface ChatMessage {
   wiki_ai_data?: string;
 }
 
-export interface WikiData {
-  wiki_user_data?: Array<any>;
-  wiki_ai_data?: Array<any>;
-}
+// export interface WikiData {
+//   wiki_user_data?: Array<any>;
+//   wiki_ai_data?: Array<any>;
+// }
 
 export function scrollBottom() {
   const chatMessages = document.querySelector(".scroll-area");
   chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-export function typeWriter() {
-  let i = 0;
-  let txt = "Lorem ipsum typing effect!"; /* The text */
-  let speed = 50; /* The speed/duration of the effect in milliseconds */
-  if (i < txt.length) {
-    document.getElementById("demo").innerHTML += txt.charAt(i);
-    i++;
-    setTimeout(typeWriter, speed);
-  }
 }
 
 export function Chat({ translationsVisible }) {
@@ -52,8 +46,74 @@ export function Chat({ translationsVisible }) {
     Chat Messages
     ==============================
   */
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [wikiData, setWikiData] = useState<WikiData[]>([]);
+  // const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // const [wikiData, setWikiData] = useState<WikiData[]>([]);
+
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      user_message: "Hello, how are you?",
+      translated_user_message: "Hola, ¿cómo estás?",
+      audio_user_data: "Base64EncodedStringOfAudio",
+      ai_message: "I'm fine, thank you!",
+      translated_ai_message: "Estoy bien, ¡gracias!",
+      audio_ai_data: "Base64EncodedStringOfAudio",
+    },
+  ]);
+
+  const [wikiData, setWikiData] = useState([
+    {
+      // Hello, how are you?
+      wiki_user_data: {
+        Hello: {
+          partOfSpeech: "Interjection",
+          definition: ["A greeting", "A greeting"],
+        },
+
+        how: {
+          partOfSpeech: "Adverb",
+          definition: ["In what way", "In what way"],
+        },
+
+        are: {
+          partOfSpeech: "Verb",
+          definition: [
+            "Second-person singular simple present indicative of be",
+            "Second-person singular simple present indicative of be",
+          ],
+        },
+
+        you: {
+          partOfSpeech: "Pronoun",
+          definition: [
+            "The person being addressed",
+            "The person being addressed",
+          ],
+        },
+      },
+      // I'm fine, thank you!
+      wiki_ai_data: {
+        "I'm": {
+          partOfSpeech: "Noun",
+          definition: ["A contraction of I am", "A contraction of I am"],
+        },
+        fine: {
+          partOfSpeech: "Adjective",
+          definition: ["Of superior quality", "Of superior quality"],
+        },
+        thank: {
+          partOfSpeech: "Verb",
+          definition: ["To express gratitude", "To express gratitude"],
+        },
+        you: {
+          partOfSpeech: "Pronoun",
+          definition: [
+            "The person being addressed",
+            "The person being addressed",
+          ],
+        },
+      },
+    },
+  ]);
 
   /**
     ==============================
@@ -112,14 +172,6 @@ export function Chat({ translationsVisible }) {
   */
   const lastAudioRef = useRef(null);
 
-  // useEffect(() => {
-  //   if (lastAudioRef.current) {
-  //     lastAudioRef.current
-  //       .play()
-  //       .catch((error) => console.error("Audio playback error:", error));
-  //   }
-  // }, [messages]);
-
   /**
     ==============================
     New Message Form
@@ -134,20 +186,26 @@ export function Chat({ translationsVisible }) {
     event.preventDefault(); // Prevent the default form submit action
 
     try {
-      // Sending the initial message and receiving primary response data
+      // const response = {data:    {
+      //   user_message: "Hello, how are you?",
+      //   translated_user_message: "Hola, ¿cómo estás?",
+      //   audio_user_data: "Base64EncodedStringOfAudio", // Simulated as a base64 string
+      //   ai_message: "I'm fine, thank you!",
+      //   translated_ai_message: "Estoy bien, ¡gracias!",
+      //   audio_ai_data: "Base64EncodedStringOfAudio",
+      // },}
       const response = await axiosInstance.post("/send_message", {
         message: newMessage,
       });
       console.log("New message sent:", response.data);
 
-      // Update messages with initial data
+      // Generate a unique ID for the new message, e.g., timestamp or UUID
+      const messageId = Date.now();
+
+      // Update messages without wiki data
       setMessages((prevMessages) => [
         ...prevMessages,
-        {
-          ...response.data,
-          wiki_user_data: "Loading...",
-          wiki_ai_data: "Loading...",
-        },
+        { id: messageId, ...response.data },
       ]);
 
       // Clear the message input field
@@ -157,34 +215,49 @@ export function Chat({ translationsVisible }) {
       setTimeout(typeWriter, 100);
 
       // Function to fetch wiki data asynchronously
-      const fetchWikiData = async (sentence, type) => {
+      const fetchWikiData = async (sentence, type, id) => {
         try {
           const result = await axiosInstance.post("/get_wiki_data", {
             sentence: sentence,
-            language: "english",
+            language: "spanish",
           });
           console.log(type === "user" ? "wiki user:" : "wiki ai:", result.data);
-          return result.data;
+          return { id, data: result.data, type };
         } catch (error) {
           console.error(`Error fetching wiki data for ${type}:`, error);
-          return `Failed to load data for ${type}`; // Fallback text in case of error
+          return { id, data: `Failed to load data for ${type}`, type }; // Fallback text in case of error
         }
       };
 
       // Asynchronously update wiki data without blocking UI updates
-      const userWikiData = fetchWikiData(newMessage, "user");
-      const aiWikiData = fetchWikiData(response.data.ai_message, "ai");
+      const userWikiPromise = fetchWikiData(newMessage, "user", messageId);
+      const aiWikiPromise = fetchWikiData(
+        response.data.ai_message,
+        "ai",
+        messageId
+      );
 
-      Promise.all([userWikiData, aiWikiData]).then(([userWiki, aiWiki]) => {
-        setMessages((prevMessages) => {
-          const newMessages = [...prevMessages];
-          const lastIndex = newMessages.length - 1;
-          newMessages[lastIndex] = {
-            ...newMessages[lastIndex],
-            wiki_user_data: userWiki,
-            wiki_ai_data: aiWiki,
-          };
-          return newMessages;
+      Promise.all([userWikiPromise, aiWikiPromise]).then((results) => {
+        results.forEach(({ id, data, type }) => {
+          setWikiData((prevData) => {
+            const newData = [...prevData];
+            const index = newData.findIndex((item) => item.id === id);
+            if (index !== -1) {
+              const item = newData[index];
+              if (type === "user") {
+                item.wiki_user_data = data;
+              } else {
+                item.wiki_ai_data = data;
+              }
+            } else {
+              newData.push(
+                type === "user"
+                  ? { id, wiki_user_data: data }
+                  : { id, wiki_ai_data: data }
+              );
+            }
+            return newData;
+          });
         });
       });
     } catch (error) {
@@ -346,7 +419,12 @@ export function Chat({ translationsVisible }) {
                         </form>
                       </>
                     ) : (
-                      msg.user_message
+                      <SplitMessageComponent
+                        message={msg.user_message}
+                        wikiData={wikiData}
+                        chatId={index}
+                        dataType={"user"}
+                      />
                     )}
                   </div>
                   <p
@@ -380,7 +458,33 @@ export function Chat({ translationsVisible }) {
                       )}
                     </div>{" "}
                   </div>
-                  <p className="ai-message mb-1">{msg.ai_message}</p>
+                  <SplitMessageComponent
+                    message={msg.ai_message}
+                    wikiData={wikiData}
+                    chatId={index}
+                    dataType={"ai"}
+                  />
+                  {/* {msg.ai_message_split.map((word, index) => (
+                    <HoverCard key={index} className="ai-message mb-1">
+                      <HoverCardTrigger>{word}</HoverCardTrigger>
+                      {wikiData[index][word] && (
+                        <HoverCardContent>
+                          <div key={word}>
+                            <h3>{word}</h3>
+                            <p>
+                              <strong>Part of Speech:</strong>{" "}
+                              {wikiData[index][word].partOfSpeech}
+                            </p>
+                            <p>
+                              <strong>Definition:</strong>{" "}
+                              {wikiData[index][word].definition}
+                            </p>
+                          </div>
+                        </HoverCardContent>
+                      )}
+                    </HoverCard>
+                  ))} */}
+                  {/* <p className="ai-message mb-1">{msg.ai_message}</p> */}
                   <p className="translated-message">
                     {msg.translated_ai_message}
                   </p>
@@ -439,6 +543,59 @@ export function Chat({ translationsVisible }) {
     </div>
   );
 }
+
+interface WikiDataEntry {
+  partOfSpeech: string;
+  definition: string[];
+}
+
+interface Props {
+  aiMessage: string;
+  wikiData: Record<number, Record<string, WikiDataEntry>>;
+}
+
+const SplitMessageComponent: React.FC<Props> = ({
+  message,
+  wikiData,
+  chatId,
+  dataType,
+}) => {
+  const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
+    if (/\s+|[.?!,:;]/.test(word)) {
+      return <>{word}</>;
+    } else {
+      // Otherwise, return the HoverCard component.
+      const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
+      const data = wikiData[chatId][subset]?.[word];
+      console.log("data", data);
+      return (
+        <HoverCard key={index} className="mb-1 ">
+          <HoverCardTrigger className="word hover:bg-primary">{word}</HoverCardTrigger>
+          {data && (
+            <HoverCardContent>
+              <div key={word}>
+                <h3>{word}</h3>
+                <p>
+                  <strong>Part of Speech:</strong> {data.partOfSpeech}
+                </p>
+                <p>
+                  <strong>Definitions:</strong>
+                  <ul className="list-decimal ml-2">
+                    {data.definition.map((definition, idx) => (
+                      <li key={idx}>{definition}</li>
+                    ))}
+                  </ul>
+                </p>
+              </div>
+            </HoverCardContent>
+          )}
+        </HoverCard>
+      );
+    }
+  });
+
+  return <span className="ai-message">{words}</span>;
+};
 
 const AudioPlayer = ({ audioData, audioRef, autoPlay = false }) => {
   const internalAudioRef = useRef(null);
