@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -12,14 +12,11 @@ export function SplitMessageComponent({
   dataType,
 }) {
   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
-    if (/\s+|[.?!,:;¡¿]/.test(word)) {
-      console.log("punctuation word", word);
+    if (/\s+|[.?!,:;¡¿]/.test(word) || word === "") {
       return <>{word}</>;
     } else {
-      console.log("real word:", word);
       const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
       const wordData = wikiData[chatIndex]?.[subset]?.[word];
-      console.log("real word:", word, wordData);
 
       return (
         <HoverCard key={index} className="mb-1">

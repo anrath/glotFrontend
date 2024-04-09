@@ -236,7 +236,7 @@ export function Chat({ translationsVisible }) {
       setNewMessage("");
       scrollBottom();
 
-      setTimeout(typeWriter, 100);
+      // setTimeout(typeWriter, 100);
 
       // // Function to fetch wiki data asynchronously
       // const fetchWikiData = async (sentence, type) => {
