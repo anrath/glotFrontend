@@ -13,11 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { axiosInstance } from "@/components/axios-instance";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { SplitMessageComponent } from "@/components/split-wiki";
 
 export interface ChatMessage {
   user_message: string;
@@ -179,6 +175,42 @@ export function Chat({ translationsVisible }) {
   */
   const [newMessage, setNewMessage] = useState("");
 
+  const fetchWikiData = async (user_message, ai_message) => {
+    // Substitute with actual data fetching logic
+    const response = await axiosInstance.post("/get_wiki_data", {
+      user_message: user_message,
+      ai_message: ai_message,
+      language: "spanish",
+    });
+    return response.data;
+  };
+
+  const isMessagesMounted = useRef(false); // This ref tracks the mount status
+  const [wikiMessageLength, setWikiMessageLength] = useState(1);
+
+  useEffect(() => {
+    if (!isMessagesMounted.current) {
+      // Skip the effect on initial render
+      // TODO == doesn't work
+      isMessagesMounted.current = true;
+      return;
+    }
+
+    if (messages.length === wikiMessageLength) {
+      return; // Skip the effect if there are no messages
+    }
+
+    const lastUserMessage = messages[messages.length - 1].user_message;
+    const lastAiMessage = messages[messages.length - 1].ai_message;
+    fetchWikiData(lastUserMessage, lastAiMessage).then((data) => {
+      if (data) {
+        console.log("Wiki data fetched:", data);
+        setWikiData((prevData) => [...prevData, data]);
+      }
+    });
+    setWikiMessageLength(messages.length);
+  }, [messages]);
+
   const handleSubmitNewMessage = async (event) => {
     if (!newMessage.trim()) {
       return; // Prevent submitting empty messages
@@ -206,45 +238,45 @@ export function Chat({ translationsVisible }) {
 
       setTimeout(typeWriter, 100);
 
-      // Function to fetch wiki data asynchronously
-      const fetchWikiData = async (sentence, type) => {
-        try {
-          const result = await axiosInstance.post("/get_wiki_data", {
-            sentence: sentence,
-            language: "spanish",
-          });
-          console.log(type === "user" ? "wiki user:" : "wiki ai:", result.data);
-          return { data: result.data, type };
-        } catch (error) {
-          console.error(`Error fetching wiki data for ${type}:`, error);
-          return { data: `Failed to load data for ${type}`, type }; // Fallback text in case of error
-        }
-      };
+      // // Function to fetch wiki data asynchronously
+      // const fetchWikiData = async (sentence, type) => {
+      //   try {
+      //     const result = await axiosInstance.post("/get_wiki_data", {
+      //       sentence: sentence,
+      //       language: "spanish",
+      //     });
+      //     console.log(type === "user" ? "wiki user:" : "wiki ai:", result.data);
+      //     return { data: result.data, type };
+      //   } catch (error) {
+      //     console.error(`Error fetching wiki data for ${type}:`, error);
+      //     return { data: `Failed to load data for ${type}`, type }; // Fallback text in case of error
+      //   }
+      // };
 
-      // Asynchronously update wiki data without blocking UI updates
-      const userWikiPromise = fetchWikiData(newMessage, "user");
-      const aiWikiPromise = fetchWikiData(response.data.ai_message, "ai");
+      // // Asynchronously update wiki data without blocking UI updates
+      // const userWikiPromise = fetchWikiData(newMessage, "user");
+      // const aiWikiPromise = fetchWikiData(response.data.ai_message, "ai");
 
-      Promise.all([userWikiPromise, aiWikiPromise]).then((results) => {
-        results.forEach(({ data, type }) => {
-          setWikiData((prevData) => {
-            // Creating a new object for the updated state
-            const newData = { ...prevData };
-            if (type === "user") {
-              newData.wiki_user_data = {
-                ...newData.wiki_user_data,
-                [messageId]: data,
-              };
-            } else if (type === "ai") {
-              newData.wiki_ai_data = {
-                ...newData.wiki_ai_data,
-                [response.data.ai_message]: data,
-              };
-            }
-            return newData;
-          });
-        });
-      });
+      // Promise.all([userWikiPromise, aiWikiPromise]).then((results) => {
+      //   results.forEach(({ data, type }) => {
+      //     setWikiData((prevData) => {
+      //       // Creating a new object for the updated state
+      //       const newData = { ...prevData };
+      //       if (type === "user") {
+      //         newData.wiki_user_data = {
+      //           ...newData.wiki_user_data,
+      //           [messageId]: data,
+      //         };
+      //       } else if (type === "ai") {
+      //         newData.wiki_ai_data = {
+      //           ...newData.wiki_ai_data,
+      //           [response.data.ai_message]: data,
+      //         };
+      //       }
+      //       return newData;
+      //     });
+      //   });
+      // });
     } catch (error) {
       console.error("Error sending initial message:", error);
     }
@@ -407,7 +439,7 @@ export function Chat({ translationsVisible }) {
                       <SplitMessageComponent
                         message={msg.user_message}
                         wikiData={wikiData}
-                        chatId={index}
+                        chatIndex={index}
                         dataType={"user"}
                       />
                     )}
@@ -446,7 +478,7 @@ export function Chat({ translationsVisible }) {
                   <SplitMessageComponent
                     message={msg.ai_message}
                     wikiData={wikiData}
-                    chatId={index}
+                    chatIndex={index}
                     dataType={"ai"}
                   />
                   <p className="translated-message">
@@ -508,59 +540,58 @@ export function Chat({ translationsVisible }) {
   );
 }
 
-interface WikiDataEntry {
-  partOfSpeech: string;
-  definition: string[];
-}
+// interface wikiData {
+//   partOfSpeech: string;
+//   definition: string[];
+// }
 
-interface Props {
-  aiMessage: string;
-  wikiData: Record<number, Record<string, WikiDataEntry>>;
-}
+// interface Props {
+//   aiMessage: string;
+//   wikiData: Record<number, Record<string, wikiData>>;
+//}
 
-const SplitMessageComponent: React.FC<Props> = ({
-  message,
-  wikiData,
-  chatId,
-  dataType,
-}) => {
-  const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
-    if (/\s+|[.?!,:;]/.test(word)) {
-      return <>{word}</>;
-    } else {
-      // Otherwise, return the HoverCard component.
-      const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
-      const data = wikiData[chatId]?.[subset]?.[word];
-      return (
-        <HoverCard key={index} className="mb-1 ">
-          <HoverCardTrigger className="word hover:bg-primary">
-            {word}
-          </HoverCardTrigger>
-          {data && (
-            <HoverCardContent>
-              <div key={word}>
-                <h3>{word}</h3>
-                <p>
-                  <strong>Part of Speech:</strong> {data.partOfSpeech}
-                </p>
-                <p>
-                  <strong>Definitions:</strong>
-                  <ul className="list-decimal ml-2">
-                    {data.definition.map((definition, idx) => (
-                      <li key={idx}>{definition}</li>
-                    ))}
-                  </ul>
-                </p>
-              </div>
-            </HoverCardContent>
-          )}
-        </HoverCard>
-      );
-    }
-  });
-  const class_type = dataType === "user" ? "user-message" : "ai-message";
-  return <span className={class_type}>{words}</span>;
-};
+// const SplitMessageComponent: React.FC<Props> = ({
+//   message,
+//   wikiData,
+//   chatId,
+//   dataType,
+// }) => {
+//   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
+//     if (/\s+|[.?!,:;]/.test(word)) {
+//       return <>{word}</>;
+//     } else {
+//       const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
+//       const data = wikiData[chatId]?.[subset]?.[word];
+//       return (
+//         <HoverCard key={index} className="mb-1 ">
+//           <HoverCardTrigger className="word hover:bg-primary">
+//             {word}
+//           </HoverCardTrigger>
+//           {data && (
+//             <HoverCardContent>
+//               <div key={word}>
+//                 <h3>{word}</h3>
+//                 <p>
+//                   <strong>Part of Speech:</strong> {data.partOfSpeech}
+//                 </p>
+//                 <p>
+//                   <strong>Definitions:</strong>
+//                   <ul className="list-decimal ml-2">
+//                     {data.definition.map((definition, idx) => (
+//                       <li key={idx}>{definition}</li>
+//                     ))}
+//                   </ul>
+//                 </p>
+//               </div>
+//             </HoverCardContent>
+//           )}
+//         </HoverCard>
+//       );
+//     }
+//   });
+//   const class_type = dataType === "user" ? "user-message" : "ai-message";
+//   return <span className={class_type}>{words}</span>;
+// };
 
 const AudioPlayer = ({ audioData, audioRef, autoPlay = false }) => {
   const internalAudioRef = useRef(null);
