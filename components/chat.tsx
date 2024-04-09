@@ -1,19 +1,23 @@
 import React, { useRef, useEffect, useState } from "react";
 
 import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
-import { CornerDownLeft, Mic, PencilLine, Volume2, X } from "lucide-react";
+import { CornerDownLeft, PencilLine, Volume2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { axiosInstance } from "@/components/axios-instance";
+import { SplitMessageComponent } from "@/components/split-wiki";
+// import { AudioInput } from "@/components/audioInput";
+import { MicrophoneComponent } from "@/components/testInput";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { axiosInstance } from "@/components/axios-instance";
-import { SplitMessageComponent } from "@/components/split-wiki";
+import { Mic } from "lucide-react";
 
 export interface ChatMessage {
   user_message: string;
@@ -26,6 +30,10 @@ export interface ChatMessage {
   wiki_ai_data?: string;
 }
 
+// interface AudioInputProps {
+//   onMessageSend: (data: any) => void; // Callback to inform parent component about the message being sent
+// }
+
 // export interface WikiData {
 //   wiki_user_data?: Array<any>;
 //   wiki_ai_data?: Array<any>;
@@ -37,6 +45,89 @@ export function scrollBottom() {
 }
 
 export function Chat({ translationsVisible }) {
+  const [recording, setRecording] = useState<boolean>(false);
+  // const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+  //   null
+  // );
+  // const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+
+  // useEffect(() => {
+  //   // Check for MediaRecorder API support
+  //   if (!window.MediaRecorder) {
+  //     alert("MediaRecorder not supported by this browser.");
+  //     return;
+  //   }
+
+  //   navigator.mediaDevices
+  //     .getUserMedia({ audio: true })
+  //     .then((stream) => {
+  //       const recorder = new MediaRecorder(stream);
+  //       setMediaRecorder(recorder);
+
+  //       recorder.ondataavailable = (event) => {
+  //         setAudioChunks((currentChunks) => [...currentChunks, event.data]);
+  //       };
+  //     })
+  //     .catch((err) => console.error("Error accessing media devices:", err));
+  // }, []);
+
+  // useEffect(() => {
+  //   if (!recording && audioChunks.length > 0) {
+  //     sendAudioToBackend();
+  //   }
+  //   // This effect depends on `recording` and `audioChunks` changes
+  // }, [recording, audioChunks]);
+
+  // const startRecording = () => {
+  //   console.log("Recording started.");
+  //   if (!mediaRecorder) return;
+  //   setAudioChunks([]);
+  //   mediaRecorder.start();
+  //   setRecording(true);
+  // };
+
+  // const stopRecording = () => {
+  //   if (!mediaRecorder) return;
+  //   // Set recording to false first to ensure useEffect triggers after all chunks are added
+  //   setRecording(false);
+  //   mediaRecorder.onstop = () => {
+  //     // Handler setup before stopping, actual sending handled by useEffect
+  //     console.log("Recording stopped.");
+  //   };
+  //   mediaRecorder.stop();
+  // };
+
+  // const sendAudioToBackend = async (): Promise<void> => {
+  //   try {
+  //     const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+  //     const formData = new FormData();
+  //     formData.append("audio", audioBlob);
+
+  //     const response = await axiosInstance.post("/process_audio", formData);
+  //     console.log("Audio sent successfully.", response.data);
+  //     // Generate a unique ID for the new message, e.g., timestamp or UUID
+  //     const messageId = Date.now();
+
+  //     // Update messages without wiki data
+  //     setMessages((prevMessages) => [
+  //       ...prevMessages,
+  //       { id: messageId, ...response.data },
+  //     ]);
+
+  //     // Clear the message input field
+  //     setNewMessage("");
+  //     scrollBottom();
+
+  //     // onAudioSend(response.data.data);
+  //   } catch (error) {
+  //     if (axiosInstance.isAxiosError(error)) {
+  //       console.error("Failed to send audio:", error.message);
+  //     } else {
+  //       console.error("An unexpected error occurred:", error);
+  //     }
+  //   }
+  // };
+
   /**
     ==============================
     Chat Messages
@@ -235,48 +326,6 @@ export function Chat({ translationsVisible }) {
       // Clear the message input field
       setNewMessage("");
       scrollBottom();
-
-      // setTimeout(typeWriter, 100);
-
-      // // Function to fetch wiki data asynchronously
-      // const fetchWikiData = async (sentence, type) => {
-      //   try {
-      //     const result = await axiosInstance.post("/get_wiki_data", {
-      //       sentence: sentence,
-      //       language: "spanish",
-      //     });
-      //     console.log(type === "user" ? "wiki user:" : "wiki ai:", result.data);
-      //     return { data: result.data, type };
-      //   } catch (error) {
-      //     console.error(`Error fetching wiki data for ${type}:`, error);
-      //     return { data: `Failed to load data for ${type}`, type }; // Fallback text in case of error
-      //   }
-      // };
-
-      // // Asynchronously update wiki data without blocking UI updates
-      // const userWikiPromise = fetchWikiData(newMessage, "user");
-      // const aiWikiPromise = fetchWikiData(response.data.ai_message, "ai");
-
-      // Promise.all([userWikiPromise, aiWikiPromise]).then((results) => {
-      //   results.forEach(({ data, type }) => {
-      //     setWikiData((prevData) => {
-      //       // Creating a new object for the updated state
-      //       const newData = { ...prevData };
-      //       if (type === "user") {
-      //         newData.wiki_user_data = {
-      //           ...newData.wiki_user_data,
-      //           [messageId]: data,
-      //         };
-      //       } else if (type === "ai") {
-      //         newData.wiki_ai_data = {
-      //           ...newData.wiki_ai_data,
-      //           [response.data.ai_message]: data,
-      //         };
-      //       }
-      //       return newData;
-      //     });
-      //   });
-      // });
     } catch (error) {
       console.error("Error sending initial message:", error);
     }
@@ -409,21 +458,7 @@ export function Chat({ translationsVisible }) {
                             className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
                           />
                           <div className="flex items-center p-3 pt-0">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <Mic className="size-4" />
-                                    <span className="sr-only">
-                                      Use Microphone
-                                    </span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  Use Microphone
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            {/* <AudioInput onAudioSend={onMessageSend} /> */}
                             <Button
                               type="submit"
                               size="sm"
@@ -502,6 +537,7 @@ export function Chat({ translationsVisible }) {
 
       {/* Chat Input */}
       <div className="sticky bottom-12">
+        <MicrophoneComponent />
         <form
           onSubmit={handleSubmitNewMessage}
           className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
@@ -521,8 +557,10 @@ export function Chat({ translationsVisible }) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button type='button' variant={recording ? "outline" : "ghost"} size="icon">
+                    {/* <a onClick={recording ? stopRecording : startRecording}> */}
                     <Mic className="size-4" />
+                    {/* </a> */}
                     <span className="sr-only">Use Microphone</span>
                   </Button>
                 </TooltipTrigger>
@@ -539,59 +577,6 @@ export function Chat({ translationsVisible }) {
     </div>
   );
 }
-
-// interface wikiData {
-//   partOfSpeech: string;
-//   definition: string[];
-// }
-
-// interface Props {
-//   aiMessage: string;
-//   wikiData: Record<number, Record<string, wikiData>>;
-//}
-
-// const SplitMessageComponent: React.FC<Props> = ({
-//   message,
-//   wikiData,
-//   chatId,
-//   dataType,
-// }) => {
-//   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
-//     if (/\s+|[.?!,:;]/.test(word)) {
-//       return <>{word}</>;
-//     } else {
-//       const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
-//       const data = wikiData[chatId]?.[subset]?.[word];
-//       return (
-//         <HoverCard key={index} className="mb-1 ">
-//           <HoverCardTrigger className="word hover:bg-primary">
-//             {word}
-//           </HoverCardTrigger>
-//           {data && (
-//             <HoverCardContent>
-//               <div key={word}>
-//                 <h3>{word}</h3>
-//                 <p>
-//                   <strong>Part of Speech:</strong> {data.partOfSpeech}
-//                 </p>
-//                 <p>
-//                   <strong>Definitions:</strong>
-//                   <ul className="list-decimal ml-2">
-//                     {data.definition.map((definition, idx) => (
-//                       <li key={idx}>{definition}</li>
-//                     ))}
-//                   </ul>
-//                 </p>
-//               </div>
-//             </HoverCardContent>
-//           )}
-//         </HoverCard>
-//       );
-//     }
-//   });
-//   const class_type = dataType === "user" ? "user-message" : "ai-message";
-//   return <span className={class_type}>{words}</span>;
-// };
 
 const AudioPlayer = ({ audioData, audioRef, autoPlay = false }) => {
   const internalAudioRef = useRef(null);
