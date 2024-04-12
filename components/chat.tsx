@@ -1,14 +1,13 @@
 import React, { useRef, useEffect, useState } from "react";
 
 import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
-import { CornerDownLeft, PencilLine, Volume2, X } from "lucide-react";
+import { CornerDownLeft, PencilLine, Volume2, X, Loader2, CirclePause, Pause } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { axiosInstance } from "@/components/axios-instance";
 import { SplitMessageComponent } from "@/components/split-wiki";
-// import { AudioInput } from "@/components/audioInput";
 import { MicrophoneComponent } from "@/components/testInput";
 
 import {
@@ -46,87 +45,86 @@ export function scrollBottom() {
 
 export function Chat({ translationsVisible }) {
   const [recording, setRecording] = useState<boolean>(false);
-  // const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-  //   null
-  // );
-  // const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [isWaitingBackend, setIsWaitingBackend] = useState(false);
 
-  // useEffect(() => {
-  //   // Check for MediaRecorder API support
-  //   if (!window.MediaRecorder) {
-  //     alert("MediaRecorder not supported by this browser.");
-  //     return;
-  //   }
+  useEffect(() => {
+    // Check for MediaRecorder API support
+    if (!window.MediaRecorder) {
+      alert("MediaRecorder not supported by this browser.");
+      return;
+    }
 
-  //   navigator.mediaDevices
-  //     .getUserMedia({ audio: true })
-  //     .then((stream) => {
-  //       const recorder = new MediaRecorder(stream);
-  //       setMediaRecorder(recorder);
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const recorder = new MediaRecorder(stream);
+        setMediaRecorder(recorder);
 
-  //       recorder.ondataavailable = (event) => {
-  //         setAudioChunks((currentChunks) => [...currentChunks, event.data]);
-  //       };
-  //     })
-  //     .catch((err) => console.error("Error accessing media devices:", err));
-  // }, []);
+        recorder.ondataavailable = (event) => {
+          setAudioChunks((currentChunks) => [...currentChunks, event.data]);
+        };
+      })
+      .catch((err) => console.error("Error accessing media devices:", err));
+  }, []);
 
-  // useEffect(() => {
-  //   if (!recording && audioChunks.length > 0) {
-  //     sendAudioToBackend();
-  //   }
-  //   // This effect depends on `recording` and `audioChunks` changes
-  // }, [recording, audioChunks]);
+  useEffect(() => {
+    if (!recording && audioChunks.length > 0) {
+      sendAudioToBackend();
+    }
+    // This effect depends on `recording` and `audioChunks` changes
+  }, [recording, audioChunks]);
 
-  // const startRecording = () => {
-  //   console.log("Recording started.");
-  //   if (!mediaRecorder) return;
-  //   setAudioChunks([]);
-  //   mediaRecorder.start();
-  //   setRecording(true);
-  // };
+  const startRecording = () => {
+    console.log("Recording started.");
+    if (!mediaRecorder) return;
+    setAudioChunks([]);
+    mediaRecorder.start();
+    setRecording(true);
+  };
 
-  // const stopRecording = () => {
-  //   if (!mediaRecorder) return;
-  //   // Set recording to false first to ensure useEffect triggers after all chunks are added
-  //   setRecording(false);
-  //   mediaRecorder.onstop = () => {
-  //     // Handler setup before stopping, actual sending handled by useEffect
-  //     console.log("Recording stopped.");
-  //   };
-  //   mediaRecorder.stop();
-  // };
+  const stopRecording = () => {
+    if (!mediaRecorder) return;
+    // Set recording to false first to ensure useEffect triggers after all chunks are added
+    setRecording(false);
+    mediaRecorder.onstop = () => {
+      // Handler setup before stopping, actual sending handled by useEffect
+      console.log("Recording stopped.");
+    };
+    mediaRecorder.stop();
+  };
 
-  // const sendAudioToBackend = async (): Promise<void> => {
-  //   try {
-  //     const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-  //     const formData = new FormData();
-  //     formData.append("audio", audioBlob);
+  const sendAudioToBackend = async (): Promise<void> => {
+    try {
+      const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+      const formData = new FormData();
+      formData.append("audio", audioBlob);
 
-  //     const response = await axiosInstance.post("/process_audio", formData);
-  //     console.log("Audio sent successfully.", response.data);
-  //     // Generate a unique ID for the new message, e.g., timestamp or UUID
-  //     const messageId = Date.now();
+      setIsWaitingBackend(true);
+      const response = await axiosInstance.post("/process_audio", formData);
+      console.log("Audio sent successfully.", response.data);
+      // Generate a unique ID for the new message, e.g., timestamp or UUID
+      const messageId = Date.now();
 
-  //     // Update messages without wiki data
-  //     setMessages((prevMessages) => [
-  //       ...prevMessages,
-  //       { id: messageId, ...response.data },
-  //     ]);
+      // Update messages without wiki data
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { id: messageId, ...response.data },
+      ]);
 
-  //     // Clear the message input field
-  //     setNewMessage("");
-  //     scrollBottom();
+      // Clear the message input field
+      setNewMessage("");
+      scrollBottom();
 
-  //     // onAudioSend(response.data.data);
-  //   } catch (error) {
-  //     if (axiosInstance.isAxiosError(error)) {
-  //       console.error("Failed to send audio:", error.message);
-  //     } else {
-  //       console.error("An unexpected error occurred:", error);
-  //     }
-  //   }
-  // };
+      // onAudioSend(response.data.data);
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+    }
+    setIsWaitingBackend(false);
+  };
 
   /**
     ==============================
@@ -234,6 +232,7 @@ export function Chat({ translationsVisible }) {
     }
 
     try {
+      setIsWaitingBackend(true);
       const response = await axiosInstance.post("/edit_last_message", {
         message: editedMessage,
       });
@@ -245,6 +244,7 @@ export function Chat({ translationsVisible }) {
     } catch (error) {
       console.error("Error updating message:", error);
     }
+    setIsWaitingBackend(false);
   };
 
   const handleCancel = () => {
@@ -309,6 +309,7 @@ export function Chat({ translationsVisible }) {
     event.preventDefault(); // Prevent the default form submit action
 
     try {
+      setIsWaitingBackend(true);
       const response = await axiosInstance.post("/send_message", {
         message: newMessage,
       });
@@ -329,6 +330,7 @@ export function Chat({ translationsVisible }) {
     } catch (error) {
       console.error("Error sending initial message:", error);
     }
+    setIsWaitingBackend(false);
   };
 
   const handleKeyDown = (event) => {
@@ -476,6 +478,7 @@ export function Chat({ translationsVisible }) {
                         wikiData={wikiData}
                         chatIndex={index}
                         dataType={"user"}
+                        lastElement={index === messages.length - 1}
                       />
                     )}
                   </div>
@@ -515,6 +518,7 @@ export function Chat({ translationsVisible }) {
                     wikiData={wikiData}
                     chatIndex={index}
                     dataType={"ai"}
+                    lastElement={index === messages.length - 1}
                   />
                   <p className="translated-message">
                     {msg.translated_ai_message}
@@ -537,7 +541,7 @@ export function Chat({ translationsVisible }) {
 
       {/* Chat Input */}
       <div className="sticky bottom-12">
-        <MicrophoneComponent />
+        {/* <MicrophoneComponent /> */}
         <form
           onSubmit={handleSubmitNewMessage}
           className="overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
@@ -554,23 +558,54 @@ export function Chat({ translationsVisible }) {
             className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
           />
           <div className="flex items-center p-3 pt-0">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button type='button' variant={recording ? "outline" : "ghost"} size="icon">
-                    {/* <a onClick={recording ? stopRecording : startRecording}> */}
-                    <Mic className="size-4" />
-                    {/* </a> */}
-                    <span className="sr-only">Use Microphone</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Use Microphone</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Button type="submit" size="sm" className="ml-auto gap-1.5">
-              Send Message
-              <CornerDownLeft className="size-3.5" />
-            </Button>
+            {/* AudioInput */}
+            {isWaitingBackend ? (
+              <Button
+                disabled
+                type="button"
+                variant={recording ? "outline" : "ghost"}
+                size="icon"
+              >
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              </Button>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant={recording ? "destructive" : "ghost"}
+                      size="icon"
+                      onClick={recording ? stopRecording : startRecording}
+                    >
+                      {recording ? (
+                        <>
+                          <Pause className="size-4" />
+                          <span className="sr-only">Stop Recording</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="size-4" />
+                          <span className="sr-only">Use Microphone</span>
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Use Microphone</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {isWaitingBackend ? (
+              <Button disabled className="ml-auto gap-1.5">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please wait
+              </Button>
+            ) : (
+              <Button type="submit" size="sm" className="ml-auto gap-1.5">
+                Send Message
+                <CornerDownLeft className="size-3.5" />
+              </Button>
+            )}
           </div>
         </form>
       </div>

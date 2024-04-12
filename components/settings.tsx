@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils"
-import { useMediaQuery } from "@/hooks/use-media-query"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerClose,
@@ -18,33 +18,20 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import React, { useState } from "react"
+} from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import React, { useState } from "react";
+import { axiosInstance } from "@/components/axios-instance";
+import { Loader2 } from "lucide-react";
 
 export function ChatDrawerDialog() {
-  const [open, setOpen] = React.useState(false)
-  const isDesktop = useMediaQuery("(min-width: 768px)")
-
-  // state variables needed
-  const [newMessage, setNewMessage] = useState("");
-
-  const updateSettings = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await axios.post("/update_settings", event);
-      console.log(response.data);
-      setOpen(false);
-    } catch (error) {
-      console.error("Error updating settings:", error);
-    }
-  };
-
+  const [open, setOpen] = React.useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={(e) => updateSettings(e)}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="outline">Edit Chat Profile</Button>
         </DialogTrigger>
@@ -58,7 +45,7 @@ export function ChatDrawerDialog() {
           <ProfileForm />
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
@@ -81,12 +68,30 @@ export function ChatDrawerDialog() {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }
 
 function ProfileForm({ className }: React.ComponentProps<"form">) {
+  const [isWaitingBackend, setIsWaitingBackend] = useState(false);
+  const updateSettings = async (event) => {
+    event.preventDefault();
+    setIsWaitingBackend(true);
+    try {
+      setIsWaitingBackend(true);
+      const response = await axiosInstance.post("/update_settings", event);
+      console.log(response.data);
+      // setOpen(false);
+    } catch (error) {
+      console.error("Error updating settings:", error);
+    }
+    setIsWaitingBackend(false);
+  };
+
   return (
-    <form className={cn("grid items-start gap-4", className)}>
+    <form
+      className={cn("grid items-start gap-4", className)}
+      onSubmit={updateSettings}
+    >
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input type="email" id="email" defaultValue="shadcn@example.com" />
@@ -95,7 +100,14 @@ function ProfileForm({ className }: React.ComponentProps<"form">) {
         <Label htmlFor="username">Username</Label>
         <Input id="username" defaultValue="@shadcn" />
       </div>
-      <Button type="submit">Save changes</Button>
+      {isWaitingBackend ? (
+        <Button disabled>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Please wait
+        </Button>
+      ) : (
+        <Button type="submit">Save changes</Button>
+      )}
     </form>
-  )
+  );
 }

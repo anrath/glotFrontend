@@ -4,13 +4,24 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+// import { useTypingEffect } from "@/components/typingEffect"; // Import the custom hook
+import TypeIt from "typeit-react";
 
-export function SplitMessageComponent({
+interface SplitMessageComponentProps {
+  message: string;
+  wikiData: any;
+  chatIndex: number;
+  dataType: string;
+}
+
+export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
   message,
   wikiData,
   chatIndex,
   dataType,
-}) {
+  lastElement,
+}) => {
+  const typingSpeed = 50;
   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
     if (/\s+|[.?!,:;¡¿]/.test(word) || word === "") {
       return <>{word}</>;
@@ -21,7 +32,31 @@ export function SplitMessageComponent({
       return (
         <HoverCard key={index} className="mb-1">
           <HoverCardTrigger className="word hover:bg-primary">
-            {word}
+            {lastElement ? (
+              <>
+                <TypeIt
+                  options={{
+                    strings: ["example word"],
+                    speed: 100,
+                    waitUntilVisible: true,
+                  }}
+                />
+                {/* <TypeIt
+                  // options={{
+                  //   strings: [word]
+                  // }}
+                  // cursor={false}
+                  getBeforeInit={(instance) => {
+                    instance.type(word).pause(index * typingSpeed);
+
+                    // Remember to return it!
+                    return instance;
+                  }}
+                /> */}
+              </>
+            ) : (
+              <>{word} </>
+            )}
           </HoverCardTrigger>
           {wordData && (
             <HoverCardContent>
@@ -45,8 +80,9 @@ export function SplitMessageComponent({
       );
     }
   });
+
   const class_type = dataType === "user" ? "user-message" : "ai-message";
   return <span className={class_type}>{words}</span>;
-}
+};
 
 export default SplitMessageComponent;
