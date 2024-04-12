@@ -23,8 +23,27 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
 }) => {
   const typingSpeed = 50;
   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
-    if (/\s+|[.?!,:;¡¿]/.test(word) || word === "") {
-      return <>{word}</>;
+    if (word === "") {
+      return <></>;
+    } else if (/\s+|[.?!,:;¡¿]/.test(word)) {
+      return (
+        <>
+          {lastElement ? (
+            <TypeIt
+              key={index}
+              options={{
+                strings: [word],
+                speed: typingSpeed,
+                waitUntilVisible: true,
+                cursorChar: "",
+                startDelay: index * typingSpeed * 2,
+              }}
+            />
+          ) : (
+            <>{word}</>
+          )}
+        </>
+      );
     } else {
       const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
       const wordData = wikiData[chatIndex]?.[subset]?.[word];
@@ -36,9 +55,11 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
               <>
                 <TypeIt
                   options={{
-                    strings: ["example word"],
-                    speed: 100,
+                    strings: [word],
+                    speed: typingSpeed,
                     waitUntilVisible: true,
+                    cursorChar: "",
+                    startDelay: index * typingSpeed * 2,
                   }}
                 />
                 {/* <TypeIt

@@ -1,7 +1,15 @@
 import React, { useRef, useEffect, useState } from "react";
 
 import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
-import { CornerDownLeft, PencilLine, Volume2, X, Loader2, CirclePause, Pause } from "lucide-react";
+import {
+  CornerDownLeft,
+  PencilLine,
+  Volume2,
+  X,
+  Loader2,
+  CirclePause,
+  Pause,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -143,6 +151,14 @@ export function Chat({ translationsVisible }) {
       translated_ai_message: "Estoy bien, ¡gracias!",
       audio_ai_data: "Base64EncodedStringOfAudio",
     },
+    {
+      user_message: "Hello, how are you?",
+      translated_user_message: "Hola, ¿cómo estás?",
+      audio_user_data: "Base64EncodedStringOfAudio",
+      ai_message: "I'm fine, thank you!",
+      translated_ai_message: "Estoy bien, ¡gracias!",
+      audio_ai_data: "Base64EncodedStringOfAudio",
+    },
   ]);
 
   const [wikiData, setWikiData] = useState([
@@ -175,7 +191,57 @@ export function Chat({ translationsVisible }) {
           ],
         },
       },
-      // I'm fine, thank you!
+      wiki_ai_data: {
+        "I'm": {
+          partOfSpeech: "Noun",
+          definition: ["A contraction of I am", "A contraction of I am"],
+        },
+        fine: {
+          partOfSpeech: "Adjective",
+          definition: ["Of superior quality", "Of superior quality"],
+        },
+        thank: {
+          partOfSpeech: "Verb",
+          definition: ["To express gratitude", "To express gratitude"],
+        },
+        you: {
+          partOfSpeech: "Pronoun",
+          definition: [
+            "The person being addressed",
+            "The person being addressed",
+          ],
+        },
+      },
+    },
+    {
+      // Hello, how are you?
+      wiki_user_data: {
+        Hello: {
+          partOfSpeech: "Interjection",
+          definition: ["A greeting", "A greeting"],
+        },
+
+        how: {
+          partOfSpeech: "Adverb",
+          definition: ["In what way", "In what way"],
+        },
+
+        are: {
+          partOfSpeech: "Verb",
+          definition: [
+            "Second-person singular simple present indicative of be",
+            "Second-person singular simple present indicative of be",
+          ],
+        },
+
+        you: {
+          partOfSpeech: "Pronoun",
+          definition: [
+            "The person being addressed",
+            "The person being addressed",
+          ],
+        },
+      },
       wiki_ai_data: {
         "I'm": {
           partOfSpeech: "Noun",
@@ -520,7 +586,11 @@ export function Chat({ translationsVisible }) {
                     dataType={"ai"}
                     lastElement={index === messages.length - 1}
                   />
-                  <p className="translated-message">
+                  <p
+                    className={`translated-message ${
+                      translationsVisible ? "block" : "hidden"
+                    }`}
+                  >
                     {msg.translated_ai_message}
                   </p>
                 </div>
