@@ -21,6 +21,7 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
   dataType,
   lastElement,
 }) => {
+  if (!message) return (<></>);
   const typingSpeed = 50;
   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
     if (word === "") {

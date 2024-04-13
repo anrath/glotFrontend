@@ -343,7 +343,7 @@ export function Chat({ translationsVisible }) {
   };
 
   const isMessagesMounted = useRef(false); // This ref tracks the mount status
-  const [wikiMessageLength, setWikiMessageLength] = useState(1);
+  const [wikiMessageLength, setWikiMessageLength] = useState(2);
 
   useEffect(() => {
     if (!isMessagesMounted.current) {
