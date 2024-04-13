@@ -12,6 +12,8 @@ interface SplitMessageComponentProps {
   wikiData: any;
   chatIndex: number;
   dataType: string;
+  lastElement: boolean;
+  typingSpeed: number;
 }
 
 export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
@@ -20,24 +22,24 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
   chatIndex,
   dataType,
   lastElement,
+  typingSpeed,
 }) => {
-  if (!message) return (<></>);
-  const typingSpeed = 50;
+  if (!message) return <></>;
   const words = message.split(/(\s+|[.?!,:;¡¿])/).map((word, index) => {
     if (word === "") {
       return <></>;
     } else if (/\s+|[.?!,:;¡¿]/.test(word)) {
       return (
         <>
-          {lastElement ? (
+          {lastElement && dataType === "ai" ? (
             <TypeIt
               key={index}
               options={{
                 strings: [word],
-                speed: typingSpeed,
-                waitUntilVisible: true,
+                speed: 50,
+                waitUntilVisible: false,
                 cursorChar: "",
-                startDelay: index * typingSpeed * 2,
+                startDelay: index * 50 * 2,
               }}
             />
           ) : (
@@ -52,32 +54,20 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
       return (
         <HoverCard key={index} className="mb-1">
           <HoverCardTrigger className="word hover:bg-primary">
-            {lastElement ? (
+            {lastElement && dataType === "ai" ? (
               <>
                 <TypeIt
                   options={{
                     strings: [word],
-                    speed: typingSpeed,
-                    waitUntilVisible: true,
+                    speed: 50,
+                    waitUntilVisible: false,
                     cursorChar: "",
-                    startDelay: index * typingSpeed * 2,
+                    startDelay: index * 50 * 2,
                   }}
                 />
-                {/* <TypeIt
-                  // options={{
-                  //   strings: [word]
-                  // }}
-                  // cursor={false}
-                  getBeforeInit={(instance) => {
-                    instance.type(word).pause(index * typingSpeed);
-
-                    // Remember to return it!
-                    return instance;
-                  }}
-                /> */}
               </>
             ) : (
-              <>{word} </>
+              <>{word}</>
             )}
           </HoverCardTrigger>
           {wordData && (
