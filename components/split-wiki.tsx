@@ -20,8 +20,62 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 
+export function formatPhonAudio(phonAudio, changes) {
+  let formattedPhonAudioArray = [];
+  let currentIndex = 0;
+
+  changes.forEach((change, i) => {
+    // Add unchanged text
+    if (currentIndex < change.position) {
+      formattedPhonAudioArray.push(
+        phonAudio.slice(currentIndex, change.position)
+      );
+    }
+
+    if (change.action === "r") {
+      // Replace character
+      formattedPhonAudioArray.push(
+        <span key={`del-${i}`} className="line-through">
+          {change.delete_character}
+        </span>
+      );
+      formattedPhonAudioArray.push(
+        <span key={`add-${i}`} className="overline">
+          {change.add_character}
+        </span>
+      );
+    } else if (change.action === "-") {
+      // Delete character
+      formattedPhonAudioArray.push(
+        <span key={`del-${i}`} className="line-through">
+          {change.character}
+        </span>
+      );
+    } else if (change.action === "+") {
+      // Add character
+      if (currentIndex === change.position) {
+        // if addition is exactly at the position without replacement
+        formattedPhonAudioArray.push(
+          <span key={`add-${i}`} className="overline">
+            {change.character}
+          </span>
+        );
+      }
+    }
+    currentIndex = change.position + 1;
+  });
+
+  // Append any remaining text after the last change
+  if (currentIndex < phonAudio.length) {
+    formattedPhonAudioArray.push(phonAudio.slice(currentIndex));
+  }
+
+  return formattedPhonAudioArray;
+}
+
 interface SplitMessageComponentProps {
   message: string;
+  pronunciation?: any;
   wikiData: any;
   chatIndex: number;
   dataType: string;
@@ -31,6 +85,7 @@ interface SplitMessageComponentProps {
 
 export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
   message,
+  pronunciation,
   wikiData,
   chatIndex,
   dataType,
@@ -64,10 +119,20 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
       );
     } else {
       const subset = dataType === "user" ? "wiki_user_data" : "wiki_ai_data";
-      const wordData = wikiData[chatIndex]?.[subset]?.[word];
+      let pronunciationWordData;
+      let pronunciationIncorrect = false;
+      if (dataType === "user") {
+        pronunciationWordData = pronunciation[word];
+        pronunciationIncorrect = pronunciationWordData?.changes.length > 0;
+      }
+      const wikiWordData = wikiData[chatIndex]?.[subset]?.[word];
       return isDesktop ? (
         <HoverCard key={index} className="mb-1">
-          <HoverCardTrigger className="word hover:bg-primary">
+          <HoverCardTrigger
+            className={`word hover:bg-primary ${
+              pronunciationIncorrect ? "underline" : ""
+            }`}
+          >
             {lastElement && dataType === "ai" ? (
               <>
                 <TypeIt
@@ -84,21 +149,29 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
               <>{word}</>
             )}
           </HoverCardTrigger>
-          {wordData && (
+          {wikiWordData && (
             <HoverCardContent>
               <div key={word}>
                 <h3>{word}</h3>
+                {pronunciationWordData && (
+                  <div>
+                    <p className="tracking-[.25em]">
+                      {formatPhonAudio(
+                        pronunciationWordData.phon_audio,
+                        pronunciationWordData.changes
+                      )}
+                    </p>
+                  </div>
+                )}
                 <p>
-                  <strong>Part of Speech:</strong> {wordData.partOfSpeech}
+                  <strong>Part of Speech:</strong> {wikiWordData.partOfSpeech}
                 </p>
-                <p>
-                  <strong>Definitions:</strong>
-                  <ul className="list-decimal ml-2">
-                    {wordData.definition.map((definition, idx) => (
-                      <li key={idx}>{definition}</li>
-                    ))}
-                  </ul>
-                </p>
+                <strong>Definitions:</strong>
+                <ul className="list-decimal ml-2">
+                  {wikiWordData.definition.map((definition, idx) => (
+                    <li key={idx}>{definition}</li>
+                  ))}
+                </ul>
               </div>
             </HoverCardContent>
           )}
@@ -109,19 +182,28 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>{word}</DrawerTitle>
-              {wordData && (
+              {wikiWordData && (
                 <>
                   <DrawerDescription>
-                    <strong>Part of Speech:</strong> {wordData.partOfSpeech}
+                    <strong>Part of Speech:</strong> {wikiWordData.partOfSpeech}
                   </DrawerDescription>
-                  <p>
-                    <strong>Definitions:</strong>
-                    <ul className="list-decimal ml-2">
-                      {wordData.definition.map((definition, idx) => (
-                        <li key={idx}>{definition}</li>
-                      ))}
-                    </ul>
-                  </p>
+                  {pronunciationWordData && (
+                    <div>
+                      <p className="tracking-[.25em]">
+                        {formatPhonAudio(
+                          pronunciationWordData.phon_audio,
+                          pronunciationWordData.changes
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  <strong>Definitions:</strong>
+                  <ul className="list-decimal ml-2">
+                    {wikiWordData.definition.map((definition, idx) => (
+                      <li key={idx}>{definition}</li>
+                    ))}
+                  </ul>
                 </>
               )}
             </DrawerHeader>
