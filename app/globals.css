@@ -65,6 +65,7 @@
 @layer components {
   .message {
     @apply bg-muted/100;
+    @apply rounded-t-lg rounded-br-lg p-3;
   }
 
   .translated-message {
@@ -73,4 +74,18 @@
   .color-btn {
     @apply bg-primary
   }
+
+  .message-pair {
+    @apply space-y-4;
+  }
+
+  .avatar-div {
+    @apply flex items-start space-x-2;
+  }
+
+  .name-div {
+    @apply flex justify-between items-center mb-1;
+  }
+
+
 }

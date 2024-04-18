@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { axiosInstance } from "@/components/axios-instance";
 import { SplitMessageComponent } from "@/components/split-wiki";
-import { MicrophoneComponent } from "@/components/testInput";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Tooltip,
@@ -113,6 +113,7 @@ export function Chat({ translationsVisible, speed }) {
       formData.append("audio", audioBlob);
 
       setIsWaitingBackend(true);
+      scrollBottom();
       const response = await axiosInstance.post("/process_audio", formData);
       console.log("Audio sent successfully.", response.data);
       // Generate a unique ID for the new message, e.g., timestamp or UUID
@@ -126,7 +127,6 @@ export function Chat({ translationsVisible, speed }) {
 
       // Clear the message input field
       setNewMessage("");
-      scrollBottom();
 
       // onAudioSend(response.data.data);
     } catch (error) {
@@ -362,6 +362,7 @@ export function Chat({ translationsVisible, speed }) {
 
     try {
       setIsWaitingBackend(true);
+      scrollBottom();
       const response = await axiosInstance.post("/edit_last_message", {
         message: editedMessage,
       });
@@ -373,6 +374,7 @@ export function Chat({ translationsVisible, speed }) {
     } catch (error) {
       console.error("Error updating message:", error);
     }
+    scrollBottom();
     setIsWaitingBackend(false);
   };
 
@@ -439,6 +441,7 @@ export function Chat({ translationsVisible, speed }) {
 
     try {
       setIsWaitingBackend(true);
+      scrollBottom();
       const response = await axiosInstance.post("/send_message", {
         message: newMessage,
       });
@@ -474,8 +477,8 @@ export function Chat({ translationsVisible, speed }) {
     <div className="chat-messages">
       <div className="flex flex-col space-y-4 mb-16">
         {messages.map((msg, index) => (
-          <div key={index} className="message-pair space-y-4">
-            <div className="flex items-start space-x-2">
+          <div key={index} className="message-pair">
+            <div className="avatar-div">
               <Avatar>
                 <AvatarImage
                   alt="User"
@@ -484,8 +487,8 @@ export function Chat({ translationsVisible, speed }) {
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className="message rounded-t-lg rounded-br-lg p-3">
-                  <div className="flex justify-between items-center mb-1">
+                <div className="message">
+                  <div className="name-div">
                     <span>
                       <strong>You</strong>
                     </span>
@@ -604,10 +607,10 @@ export function Chat({ translationsVisible, speed }) {
                 </div>
               </div>
             </div>
-            <div className="flex items-start space-x-2 justify-end">
+            <div className="avatar-div justify-end">
               <div className="flex-1">
-                <div className="message rounded-t-lg rounded-bl-lg p-3">
-                  <div className="flex justify-between items-center mb-1">
+                <div className="message">
+                  <div className="name-div">
                     <span>
                       <strong>Glot</strong>
                     </span>
@@ -624,7 +627,7 @@ export function Chat({ translationsVisible, speed }) {
                           autoPlay={index === messages.length - 1}
                         />
                       )}
-                    </div>{" "}
+                    </div>
                   </div>
                   <SplitMessageComponent
                     message={msg.ai_message}
@@ -643,7 +646,7 @@ export function Chat({ translationsVisible, speed }) {
                   </p>
                 </div>
               </div>
-              <div className="flex justify-between items-center mb-1">
+              <div className="name-div">
                 <Avatar>
                   <AvatarImage
                     alt="Glot"
@@ -655,6 +658,52 @@ export function Chat({ translationsVisible, speed }) {
             </div>
           </div>
         ))}
+        {isWaitingBackend ? (
+          <div className="message-pair">
+            <div className="avatar-div">
+              <Avatar>
+                <AvatarImage
+                  alt="User"
+                  src="/placeholder.svg?height=40&width=40"
+                />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="message">
+                  <div className="name-div">
+                    <span>
+                      <strong>You</strong>
+                    </span>
+                  </div>
+                  <SkeletonCard />
+                </div>
+              </div>
+            </div>
+            <div className="avatar-div justify-end">
+              <div className="flex-1">
+                <div className="message">
+                  <div className="name-div">
+                    <span>
+                      <strong>Glot</strong>
+                    </span>
+                  </div>
+                  <SkeletonCard />
+                </div>
+              </div>
+              <div className="name-div">
+                <Avatar>
+                  <AvatarImage
+                    alt="Glot"
+                    src="/placeholder.svg?height=40&width=40"
+                  />
+                  <AvatarFallback>G</AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
 
       {/* Chat Input */}
@@ -775,3 +824,12 @@ const AudioPlayer = ({ speed, audioData, audioRef, autoPlay = false }) => {
     </span>
   );
 };
+
+export function SkeletonCard() {
+  return (
+    <div className="flex flex-col space-y-3">
+      <Skeleton className="h-4 w-[90%] bg-background" />
+      <Skeleton className="h-4 w-[75%] bg-background" />
+    </div>
+  );
+}

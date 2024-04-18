@@ -25,6 +25,13 @@ import React, { useState } from "react";
 import { axiosInstance } from "@/components/axios-instance";
 import { Loader2 } from "lucide-react";
 
+export interface ChatSettings {
+  convo_lang: string;
+  known_lang: string;
+  scenario?: string;
+  learningFocus?: string;
+}
+
 export function ChatDrawerDialog() {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -33,14 +40,14 @@ export function ChatDrawerDialog() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">Edit Chat Profile</Button>
+          <Button variant="outline">Edit Conversation Profile</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit profile</DialogTitle>
-            <DialogDescription>
+            <DialogTitle>Edit Conversation Profile</DialogTitle>
+            {/* <DialogDescription>
               Make changes to your profile here. Click save when you're done.
-            </DialogDescription>
+            </DialogDescription> */}
           </DialogHeader>
           <ProfileForm />
         </DialogContent>
@@ -51,14 +58,14 @@ export function ChatDrawerDialog() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline">Edit Profile</Button>
+        <Button variant="outline">Edit Chat Profile</Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>Edit profile</DrawerTitle>
-          <DrawerDescription>
+          <DrawerTitle>Edit Chat Profile</DrawerTitle>
+          {/* <DrawerDescription>
             Make changes to your profile here. Click save when you're done.
-          </DrawerDescription>
+          </DrawerDescription> */}
         </DrawerHeader>
         <ProfileForm className="px-4" />
         <DrawerFooter className="pt-2">
@@ -73,33 +80,49 @@ export function ChatDrawerDialog() {
 
 function ProfileForm({ className }: React.ComponentProps<"form">) {
   const [isWaitingBackend, setIsWaitingBackend] = useState(false);
+  const [settings, setSettings] = useState<ChatSettings>({
+    convo_lang: "Spanish",
+    known_lang: "English",
+    scenario: "waiter in Barcelona",
+    learningFocus: "present tense",
+  });
+
+  const displaySettings = {
+    convo_lang: "Conversation Language",
+    known_lang: "Known Language",
+    scenario: "Scenario",
+    learningFocus: "Learning Focus",
+  };
+
   const updateSettings = async (event) => {
     event.preventDefault();
+    // TODO: fix assignment: // setSettings(event);
+    console.log("working");
     setIsWaitingBackend(true);
     try {
-      setIsWaitingBackend(true);
       const response = await axiosInstance.post("/update_settings", event);
       console.log(response.data);
-      // setOpen(false);
     } catch (error) {
       console.error("Error updating settings:", error);
     }
     setIsWaitingBackend(false);
   };
 
+  const settingsDivs = Object.keys(settings).map((key, index) => {
+    return (
+      <div key={index} className="grid gap-2">
+        <Label htmlFor={key}>{displaySettings[key]}</Label>
+        <Input id={key} defaultValue={settings[key]} />
+      </div>
+    );
+  });
+
   return (
     <form
       className={cn("grid items-start gap-4", className)}
       onSubmit={updateSettings}
     >
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input type="email" id="email" defaultValue="shadcn@example.com" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="username">Username</Label>
-        <Input id="username" defaultValue="@shadcn" />
-      </div>
+      {settingsDivs}
       {isWaitingBackend ? (
         <Button disabled>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />

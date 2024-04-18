@@ -122,7 +122,7 @@ export const SplitMessageComponent: React.FC<SplitMessageComponentProps> = ({
       let pronunciationWordData;
       let pronunciationIncorrect = false;
       if (dataType === "user") {
-        pronunciationWordData = pronunciation[word];
+        pronunciationWordData = pronunciation?.[word];
         pronunciationIncorrect = pronunciationWordData?.changes.length > 0;
       }
       const wikiWordData = wikiData[chatIndex]?.[subset]?.[word];
