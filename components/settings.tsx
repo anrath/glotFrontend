@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
 import { axiosInstance } from "@/components/axios-instance";
 import { Loader2 } from "lucide-react";
+import { LangForm } from "@/components/langForm";
 
 export interface ChatSettings {
   convo_lang: string;
@@ -38,20 +39,23 @@ export function ChatDrawerDialog() {
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">Edit Conversation Profile</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Conversation Profile</DialogTitle>
-            {/* <DialogDescription>
+      <>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">Edit Conversation Profile</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Edit Conversation Profile</DialogTitle>
+              {/* <DialogDescription>
               Make changes to your profile here. Click save when you're done.
             </DialogDescription> */}
-          </DialogHeader>
-          <ProfileForm />
-        </DialogContent>
-      </Dialog>
+            </DialogHeader>
+            <ProfileForm />
+            <LangForm />
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 

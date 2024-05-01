@@ -1,9 +1,11 @@
 "use client";
 
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { axiosInstance } from "./axios-instance";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,6 +15,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Form,
@@ -42,27 +45,44 @@ const languages = [
   { label: "Chinese", value: "zh" },
 ] as const;
 
+
 const FormSchema = z.object({
-  language: z.string({
+  convo_language: z.string({
     required_error: "Please select a language.",
   }),
+  known_language: z.string({
+    required_error: "Please select a language.",
+  }),
+  scenario: z.string().optional(),
+  learningFocus: z.string().optional(),
 });
 
-export function ComboboxForm() {
-  const { toast } = useToast();
+export function LangForm() {
+  // const { toast } = useToast();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
+  const [isWaitingBackend, setIsWaitingBackend] = useState(false);
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    console.log("working");
+    setIsWaitingBackend(true);
+    try {
+      const response = await axiosInstance.post("/update_settings", event);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error updating settings:", error);
+    }
+    setIsWaitingBackend(false);
+
+    // toast({
+    //   title: "You submitted the following values:",
+    //   description: (
+    //     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+    //       <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+    //     </pre>
+    //   ),
+    // });
   }
 
   return (
@@ -70,7 +90,7 @@ export function ComboboxForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="language"
+          name="convo_language"
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Language</FormLabel>
@@ -99,25 +119,27 @@ export function ComboboxForm() {
                     <CommandInput placeholder="Search language..." />
                     <CommandEmpty>No language found.</CommandEmpty>
                     <CommandGroup>
-                      {languages.map((language) => (
-                        <CommandItem
-                          value={language.label}
-                          key={language.value}
-                          onSelect={() => {
-                            form.setValue("language", language.value);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              language.value === field.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {language.label}
-                        </CommandItem>
-                      ))}
+                      <CommandList>
+                        {languages.map((language) => (
+                          <CommandItem
+                            value={language.label}
+                            key={language.value}
+                            onSelect={() => {
+                              form.setValue("convo_language", language.value);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                language.value === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {language.label}
+                          </CommandItem>
+                        ))}
+                      </CommandList>
                     </CommandGroup>
                   </Command>
                 </PopoverContent>
@@ -129,7 +151,14 @@ export function ComboboxForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+      {isWaitingBackend ? (
+        <Button disabled>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Please wait
+        </Button>
+      ) : (
+        <Button type="submit">Save changes</Button>
+      )}
       </form>
     </Form>
   );
