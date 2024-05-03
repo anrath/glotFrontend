@@ -26,24 +26,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useToast } from "@/components/ui/use-toast";
-import { Textarea } from "@/components/ui/textarea";
-import { FancyBox } from "./fancy-box";
 
 const languages = [
   { label: "English", value: "en" },
@@ -70,42 +59,95 @@ const FormSchema = z.object({
   known_language: z.string({
     required_error: "Please select a language.",
   }),
-  // multiselect
-  scenario: z.string().optional(),
-  learningFocus: z.set(z.string()).optional(),
+  scenario: z.string({ required_error: "Please select a scenario." }),
+  learningFocus: z.array(z.string()).optional(),
 });
 
-export function LangForm() {
-  // const { toast } = useToast();
+type Framework = Record<"value" | "label" | "color", string>;
+
+const FRAMEWORKS = [
+  {
+    value: "next.js",
+    label: "Next.js",
+    color: "#ef4444",
+  },
+  {
+    value: "sveltekit",
+    label: "SvelteKit",
+    color: "#eab308",
+  },
+  {
+    value: "nuxt.js",
+    label: "Nuxt.js",
+    color: "#22c55e",
+  },
+  {
+    value: "remix",
+    label: "Remix",
+    color: "#06b6d4",
+  },
+  {
+    value: "astro",
+    label: "Astro",
+    color: "#3b82f6",
+  },
+  {
+    value: "wordpress",
+    label: "WordPress",
+    color: "#8b5cf6",
+  },
+] satisfies Framework[];
+
+const badgeStyle = (color: string) => ({
+  borderColor: `${color}20`,
+  backgroundColor: `${color}30`,
+  color,
+});
+
+export function LangForm({ className }: React.ComponentProps<"form">) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
   const [isWaitingBackend, setIsWaitingBackend] = useState(false);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log("working");
+    console.log(data);
     setIsWaitingBackend(true);
     try {
-      const response = await axiosInstance.post("/update_settings", event);
+      const response = await axiosInstance.post("/update_settings", data);
       console.log(response.data);
     } catch (error) {
       console.error("Error updating settings:", error);
     }
     setIsWaitingBackend(false);
-
-    // toast({
-    //   title: "You submitted the following values:",
-    //   description: (
-    //     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-    //       <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-    //     </pre>
-    //   ),
-    // });
   }
+
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [frameworks, setFrameworks] = React.useState<Framework[]>(FRAMEWORKS);
+  const [openCombobox, setOpenCombobox] = React.useState(false);
+  const [inputValue, setInputValue] = React.useState<string>("");
+  const [selectedValues, setSelectedValues] = React.useState<Framework[]>([]);
+
+  const toggleFramework = (framework: Framework) => {
+    setSelectedValues((currentFrameworks) =>
+      !currentFrameworks.includes(framework)
+        ? [...currentFrameworks, framework]
+        : currentFrameworks.filter((l) => l.value !== framework.value)
+    );
+    inputRef?.current?.focus();
+    const values: string[] = selectedValues.map(framework => framework.value);
+ 
+    form.setValue("learningFocus", values);
+  };
+
+  const onComboboxOpenChange = (value: boolean) => {
+    inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+    setOpenCombobox(value);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("grid items-start gap-4 space-y-6", className)}>
         {/* Form Variables */}
         <FormField
           control={form.control}
@@ -235,69 +277,12 @@ export function LangForm() {
           )}
         />
 
-        {/* <FormField
-          control={form.control}
-          name="scenario"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Scenario</FormLabel>
-              <FormControl>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !form.watch("scenario")?.size && "text-muted-foreground"
-                      )}
-                    >
-                      {form.watch("scenario")?.size
-                        ? `Selected: ${form.watch("scenario").size} options`
-                        : "Select scenarios"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[200px] p-0">
-                    <DropdownMenuLabel>Choose Scenarios</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {scenarios.map((persona) => (
-                      <DropdownMenuCheckboxItem
-                        key={persona.value}
-                        checked={form.watch("scenario")?.has(persona.value)}
-                        onCheckedChange={(isChecked) => {
-                          const newScenarios = new Set(
-                            form.getValues("scenario")
-                          );
-                          if (isChecked) {
-                            newScenarios.add(persona.value);
-                          } else {
-                            newScenarios.delete(persona.value);
-                          }
-                          form.setValue("scenario", newScenarios);
-                        }}
-                      >
-                        {persona.label}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </FormControl>
-
-              <FormDescription>
-                This is the language that will be used in the dashboard.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-
         <FormField
           control={form.control}
           name="scenario"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Known Language</FormLabel>
+              <FormLabel>Scenario</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -361,9 +346,93 @@ export function LangForm() {
             <FormItem className="flex flex-col">
               <FormLabel>Learning Focus</FormLabel>
               <FormControl>
-                <FancyBox />
+                <div className="max-w-[200px]">
+                  <Popover
+                    open={openCombobox}
+                    onOpenChange={onComboboxOpenChange}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openCombobox}
+                        className="w-[200px] justify-between text-foreground"
+                      >
+                        <span className="truncate">
+                          {selectedValues.length === 0 && "Select labels"}
+                          {selectedValues.length === 1 &&
+                            selectedValues[0].label}
+                          {selectedValues.length === 2 &&
+                            selectedValues.map(({ label }) => label).join(", ")}
+                          {selectedValues.length > 2 &&
+                            `${selectedValues.length} labels selected`}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command loop>
+                        <CommandList>
+                          <CommandInput
+                            ref={inputRef}
+                            placeholder="Search framework..."
+                            value={inputValue}
+                            onValueChange={setInputValue}
+                          />
+                          <CommandGroup className="max-h-[145px] overflow-auto">
+                            {frameworks.map((framework) => {
+                              const isActive =
+                                selectedValues.includes(framework);
+                              return (
+                                <CommandItem
+                                  key={framework.value}
+                                  value={framework.value}
+                                  onSelect={() => toggleFramework(framework)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      isActive ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex-1">
+                                    {framework.label}
+                                  </div>
+                                  <div
+                                    className="h-4 w-4 rounded-full"
+                                    style={{ backgroundColor: framework.color }}
+                                  />
+                                </CommandItem>
+                              );
+                            })}
+                            <CommandEmpty>No framework found.</CommandEmpty>
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <div
+                    className="relative mt-3 h-24 overflow-y-auto"
+                    style={{
+                      marginBottom: `${-100 / (selectedValues.length + 1)}px`,
+                    }}
+                  >
+                    {selectedValues.map(({ label, value, color }) => (
+                      <Badge
+                        key={value}
+                        variant="outline"
+                        style={badgeStyle(color)}
+                        className="mr-2 mb-2"
+                      >
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </FormControl>
-              <FormDescription>Are there skills you want to focus on for this conversation?</FormDescription>
+              <FormDescription>
+                Are there skills you want to focus on for this conversation?
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

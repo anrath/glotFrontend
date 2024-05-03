@@ -51,7 +51,7 @@ export function ChatDrawerDialog() {
               Make changes to your profile here. Click save when you're done.
             </DialogDescription> */}
             </DialogHeader>
-            <ProfileForm />
+            {/* <ProfileForm /> */}
             <LangForm />
           </DialogContent>
         </Dialog>
@@ -71,7 +71,8 @@ export function ChatDrawerDialog() {
             Make changes to your profile here. Click save when you're done.
           </DrawerDescription> */}
         </DrawerHeader>
-        <ProfileForm className="px-4" />
+        {/* <ProfileForm className="px-4" /> */}
+        <LangForm className="px-4" />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>

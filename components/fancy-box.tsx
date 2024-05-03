@@ -5,23 +5,6 @@ import * as React from "react";
 import { Check, ChevronsUpDown, Edit2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,24 +17,11 @@ import {
   CommandEmpty
 } from "@/components/ui/command";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { DialogClose } from "@radix-ui/react-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-// FIXME: https://twitter.com/lemcii/status/1659649371162419202?s=46&t=gqNnMIjMWXiG2Rbrr5gT6g
-// Removing states would help maybe?
 
 type Framework = Record<"value" | "label" | "color", string>;
 
@@ -98,19 +68,8 @@ export function FancyBox() {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [frameworks, setFrameworks] = React.useState<Framework[]>(FRAMEWORKS);
   const [openCombobox, setOpenCombobox] = React.useState(false);
-//   const [openDialog, setOpenDialog] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
   const [selectedValues, setSelectedValues] = React.useState<Framework[]>([FRAMEWORKS[0]]);
-
-  const createFramework = (name: string) => {
-    const newFramework = {
-      value: name.toLowerCase(),
-      label: name,
-      color: "#ffffff",
-    };
-    setFrameworks((prev) => [...prev, newFramework]);
-    setSelectedValues((prev) => [...prev, newFramework]);
-  };
 
   const toggleFramework = (framework: Framework) => {
     setSelectedValues((currentFrameworks) =>
@@ -120,22 +79,6 @@ export function FancyBox() {
     );
     inputRef?.current?.focus();
   };
-
-  const updateFramework = (framework: Framework, newFramework: Framework) => {
-    setFrameworks((prev) =>
-      prev.map((f) => (f.value === framework.value ? newFramework : f))
-    );
-    setSelectedValues((prev) =>
-      prev.map((f) => (f.value === framework.value ? newFramework : f))
-    );
-  };
-
-//   const deleteFramework = (framework: Framework) => {
-//     setFrameworks((prev) => prev.filter((f) => f.value !== framework.value));
-//     setSelectedValues((prev) =>
-//       prev.filter((f) => f.value !== framework.value)
-//     );
-//   };
 
   const onComboboxOpenChange = (value: boolean) => {
     inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
@@ -196,73 +139,11 @@ export function FancyBox() {
                 );
               })}
                 <CommandEmpty>No framework found.</CommandEmpty>
-              {/* <CommandItemCreate
-                onSelect={() => createFramework(inputValue)}
-                {...{ inputValue, frameworks }}
-              /> */}
             </CommandGroup>
-            {/* <CommandSeparator alwaysRender />
-            <CommandGroup>
-              <CommandItem
-                value={`:${inputValue}:`} // HACK: that way, the edit button will always be shown
-                className="text-xs text-muted-foreground"
-                onSelect={() => setOpenDialog(true)}
-              >
-                <div className={cn("mr-2 h-4 w-4")} />
-                <Edit2 className="mr-2 h-2.5 w-2.5" />
-                Edit Labels
-              </CommandItem>
-            </CommandGroup> */}
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
-      {/* <Dialog
-        open={openDialog}
-        onOpenChange={(open) => {
-          if (!open) {
-            setOpenCombobox(true);
-          }
-          setOpenDialog(open);
-        }}
-      >
-        <DialogContent className="max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Edit Labels</DialogTitle>
-            <DialogDescription>
-              Change the label names or delete the labels. Create a label
-              through the combobox though.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="overflow-scroll -mx-6 px-6 flex-1 py-2">
-            {frameworks.map((framework) => {
-              return (
-                <DialogListItem
-                  key={framework.value}
-                  onDelete={() => deleteFramework(framework)}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const target = e.target as typeof e.target &
-                      Record<"name" | "color", { value: string }>;
-                    const newFramework = {
-                      value: target.name.value.toLowerCase(),
-                      label: target.name.value,
-                      color: target.color.value,
-                    };
-                    updateFramework(framework, newFramework);
-                  }}
-                  {...framework}
-                />
-              );
-            })}
-          </div>
-          <DialogFooter className="bg-opacity-40">
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
       <div className="relative mt-3 h-24 overflow-y-auto"  style={{ marginBottom: `${-100 / (selectedValues.length + 1)}px`}}>
         {selectedValues.map(({ label, value, color }) => (
           <Badge
@@ -278,140 +159,3 @@ export function FancyBox() {
     </div>
   );
 }
-
-// const CommandItemCreate = ({
-//   inputValue,
-//   frameworks,
-//   onSelect,
-// }: {
-//   inputValue: string;
-//   frameworks: Framework[];
-//   onSelect: () => void;
-// }) => {
-//   const hasNoFramework = !frameworks
-//     .map(({ value }) => value)
-//     .includes(`${inputValue.toLowerCase()}`);
-
-//   const render = inputValue !== "" && hasNoFramework;
-
-//   if (!render) return null;
-
-//   // BUG: whenever a space is appended, the Create-Button will not be shown.
-//   return (
-//     <CommandItem
-//       key={`${inputValue}`}
-//       value={`${inputValue}`}
-//       className="text-xs text-muted-foreground"
-//       onSelect={onSelect}
-//     >
-//       <div className={cn("mr-2 h-4 w-4")} />
-//       Create new label &quot;{inputValue}&quot;
-//     </CommandItem>
-//   );
-// };
-
-const DialogListItem = ({
-  value,
-  label,
-  color,
-  onSubmit,
-  onDelete,
-}: Framework & {
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  onDelete: () => void;
-}) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [accordionValue, setAccordionValue] = React.useState<string>("");
-  const [inputValue, setInputValue] = React.useState<string>(label);
-  const [colorValue, setColorValue] = React.useState<string>(color);
-  const disabled = label === inputValue && color === colorValue;
-
-  React.useEffect(() => {
-    if (accordionValue !== "") {
-      inputRef.current?.focus();
-    }
-  }, [accordionValue]);
-
-  return (
-    <Accordion
-      key={value}
-      type="single"
-      collapsible
-      value={accordionValue}
-      onValueChange={setAccordionValue}
-    >
-      <AccordionItem value={value}>
-        <div className="flex justify-between items-center">
-          <div>
-            <Badge variant="outline" style={badgeStyle(color)}>
-              {label}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-4">
-            <AccordionTrigger>Edit</AccordionTrigger>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                {/* REMINDER: size="xs" */}
-                <Button variant="destructive" size="xs">
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    You are about to delete the label{" "}
-                    <Badge variant="outline" style={badgeStyle(color)}>
-                      {label}
-                    </Badge>{" "}
-                    .
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDelete}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-        <AccordionContent>
-          <form
-            className="flex items-end gap-4"
-            onSubmit={(e) => {
-              onSubmit(e);
-              setAccordionValue("");
-            }}
-          >
-            <div className="w-full gap-3 grid">
-              <Label htmlFor="name">Label name</Label>
-              <Input
-                ref={inputRef}
-                id="name"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="h-8"
-              />
-            </div>
-            <div className="gap-3 grid">
-              <Label htmlFor="color">Color</Label>
-              <Input
-                id="color"
-                type="color"
-                value={colorValue}
-                onChange={(e) => setColorValue(e.target.value)}
-                className="h-8 px-2 py-1"
-              />
-            </div>
-            {/* REMINDER: size="xs" */}
-            <Button type="submit" disabled={disabled} size="xs">
-              Save
-            </Button>
-          </form>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  );
-};
