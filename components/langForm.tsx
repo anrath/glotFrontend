@@ -46,6 +46,15 @@ const languages = [
   { label: "Chinese", value: "zh" },
 ];
 
+const levels = [
+  { label: "None", value: "none" },
+  { label: "Beginner", value: "beginner" },
+  { label: "Intermediate", value: "intermediate" },
+  { label: "Advanced", value: "advanced" },
+  { label: "Fluent", value: "fluent" },
+  { label: "Native", value: "native" },
+];
+
 const scenarios = [
   { label: "Restaurant Waiter", value: "waiter" },
   { label: "Tour Guide", value: "tourGuide" },
@@ -53,11 +62,14 @@ const scenarios = [
 ];
 
 const FormSchema = z.object({
+  known_language: z.string({
+    required_error: "Please select a language.",
+  }),
   convo_language: z.string({
     required_error: "Please select a language.",
   }),
-  known_language: z.string({
-    required_error: "Please select a language.",
+  language_level: z.string({
+    required_error: "Please select an experience level.",
   }),
   scenario: z.string({ required_error: "Please select a scenario." }),
   learningFocus: z.array(z.string()).optional(),
@@ -135,8 +147,8 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
         : currentFrameworks.filter((l) => l.value !== framework.value)
     );
     inputRef?.current?.focus();
-    const values: string[] = selectedValues.map(framework => framework.value);
- 
+    const values: string[] = selectedValues.map((framework) => framework.value);
+
     form.setValue("learningFocus", values);
   };
 
@@ -147,8 +159,75 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("grid items-start gap-4 space-y-6", className)}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn("grid items-start gap-4 space-y-6", className)}
+      >
         {/* Form Variables */}
+        <FormField
+          control={form.control}
+          name="known_language"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Known Language</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-[200px] justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value
+                        ? languages.find(
+                            (language) => language.value === field.value
+                          )?.label
+                        : "Select language"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search language..." />
+                    <CommandEmpty>No language found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandList>
+                        {languages.map((language) => (
+                          <CommandItem
+                            value={language.label}
+                            key={language.value}
+                            onSelect={() => {
+                              form.setValue("known_language", language.value);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                language.value === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {language.label}
+                          </CommandItem>
+                        ))}
+                      </CommandList>
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                Choose a language that you are fluent in.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="convo_language"
@@ -215,10 +294,10 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
 
         <FormField
           control={form.control}
-          name="known_language"
+          name="language_level"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Known Language</FormLabel>
+              <FormLabel>Language Level</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -231,10 +310,9 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                       )}
                     >
                       {field.value
-                        ? languages.find(
-                            (language) => language.value === field.value
-                          )?.label
-                        : "Select language"}
+                        ? levels.find((level) => level.value === field.value)
+                            ?.label
+                        : "Select level"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
@@ -242,26 +320,26 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                 <PopoverContent className="w-[200px] p-0">
                   <Command>
                     <CommandInput placeholder="Search language..." />
-                    <CommandEmpty>No language found.</CommandEmpty>
+                    <CommandEmpty>No level found.</CommandEmpty>
                     <CommandGroup>
                       <CommandList>
-                        {languages.map((language) => (
+                        {levels.map((level) => (
                           <CommandItem
-                            value={language.label}
-                            key={language.value}
+                            value={level.label}
+                            key={level.value}
                             onSelect={() => {
-                              form.setValue("known_language", language.value);
+                              form.setValue("language_level", level.value);
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                language.value === field.value
+                                level.value === field.value
                                   ? "opacity-100"
                                   : "opacity-0"
                               )}
                             />
-                            {language.label}
+                            {level.label}
                           </CommandItem>
                         ))}
                       </CommandList>
@@ -270,7 +348,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                 </PopoverContent>
               </Popover>
               <FormDescription>
-                Choose a language that you are fluent in.
+                Choose your level of proficiency in the language.
               </FormDescription>
               <FormMessage />
             </FormItem>
