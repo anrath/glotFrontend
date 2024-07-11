@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 import { axiosInstance } from "./axios-instance";
 
@@ -61,6 +61,12 @@ const scenarios = [
   { label: "Local Resident", value: "local" },
 ];
 
+const focuses = [
+  { label: "Verbs", value: "verbs" },
+  { label: "Nouns", value: "nouns" },
+  { label: "Adjectives", value: "adjectives" },
+];
+
 const FormSchema = z.object({
   known_language: z.string({
     required_error: "Please select a language.",
@@ -77,38 +83,38 @@ const FormSchema = z.object({
 
 type Framework = Record<"value" | "label" | "color", string>;
 
-const FRAMEWORKS = [
-  {
-    value: "next.js",
-    label: "Next.js",
-    color: "#ef4444",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-    color: "#eab308",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-    color: "#22c55e",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-    color: "#06b6d4",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-    color: "#3b82f6",
-  },
-  {
-    value: "wordpress",
-    label: "WordPress",
-    color: "#8b5cf6",
-  },
-] satisfies Framework[];
+// const FRAMEWORKS = [
+//   {
+//     value: "next.js",
+//     label: "Next.js",
+//     color: "#ef4444",
+//   },
+//   {
+//     value: "sveltekit",
+//     label: "SvelteKit",
+//     color: "#eab308",
+//   },
+//   {
+//     value: "nuxt.js",
+//     label: "Nuxt.js",
+//     color: "#22c55e",
+//   },
+//   {
+//     value: "remix",
+//     label: "Remix",
+//     color: "#06b6d4",
+//   },
+//   {
+//     value: "astro",
+//     label: "Astro",
+//     color: "#3b82f6",
+//   },
+//   {
+//     value: "wordpress",
+//     label: "WordPress",
+//     color: "#8b5cf6",
+//   },
+// ] satisfies Framework[];
 
 const badgeStyle = (color: string) => ({
   borderColor: `${color}20`,
@@ -135,8 +141,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
   }
 
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [frameworks, setFrameworks] = React.useState<Framework[]>(FRAMEWORKS);
-  const [openCombobox, setOpenCombobox] = React.useState(false);
+  // const [frameworks, setFrameworks] = React.useState<Framework[]>(FRAMEWORKS);
   const [inputValue, setInputValue] = React.useState<string>("");
   const [selectedValues, setSelectedValues] = React.useState<Framework[]>([]);
 
@@ -152,16 +157,41 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
     form.setValue("learningFocus", values);
   };
 
+  const [openCombobox, setOpenCombobox] = React.useState(false);
   const onComboboxOpenChange = (value: boolean) => {
     inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
     setOpenCombobox(value);
+  };
+
+  const [openCombobox1, setOpenCombobox1] = React.useState(false);
+  const onComboboxOpenChange1 = (value: boolean) => {
+    inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+    setOpenCombobox1(value);
+  };
+
+  const [openCombobox2, setOpenCombobox2] = React.useState(false);
+  const onComboboxOpenChange2 = (value: boolean) => {
+    inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+    setOpenCombobox2(value);
+  };
+
+  const [openCombobox3, setOpenCombobox3] = React.useState(false);
+  const onComboboxOpenChange3 = (value: boolean) => {
+    inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+    setOpenCombobox3(value);
+  };
+
+  const [openCombobox4, setOpenCombobox4] = React.useState(false);
+  const onComboboxOpenChange4 = (value: boolean) => {
+    inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
+    setOpenCombobox4(value);
   };
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn("grid items-start gap-4 space-y-6", className)}
+        className={cn("grid items-start space-y-6", className)}
       >
         {/* Form Variables */}
         <FormField
@@ -170,12 +200,13 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Known Language</FormLabel>
-              <Popover>
+              <Popover open={openCombobox1} onOpenChange={onComboboxOpenChange1}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant="outline"
                       role="combobox"
+                      aria-expanded={openCombobox1}
                       className={cn(
                         "w-[200px] justify-between",
                         !field.value && "text-muted-foreground"
@@ -202,6 +233,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                             key={language.value}
                             onSelect={() => {
                               form.setValue("known_language", language.value);
+                              setOpenCombobox1(false);
                             }}
                           >
                             <Check
@@ -234,12 +266,13 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Conversation Language</FormLabel>
-              <Popover>
+              <Popover open={openCombobox2} onOpenChange={onComboboxOpenChange2}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant="outline"
                       role="combobox"
+                      aria-expanded={openCombobox2}
                       className={cn(
                         "w-[200px] justify-between",
                         !field.value && "text-muted-foreground"
@@ -266,6 +299,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                             key={language.value}
                             onSelect={() => {
                               form.setValue("convo_language", language.value);
+                              setOpenCombobox2(false);
                             }}
                           >
                             <Check
@@ -298,12 +332,13 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Language Level</FormLabel>
-              <Popover>
+              <Popover open={openCombobox3} onOpenChange={onComboboxOpenChange3}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant="outline"
                       role="combobox"
+                      aria-expanded={openCombobox3}
                       className={cn(
                         "w-[200px] justify-between",
                         !field.value && "text-muted-foreground"
@@ -329,6 +364,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                             key={level.value}
                             onSelect={() => {
                               form.setValue("language_level", level.value);
+                              setOpenCombobox3(false);
                             }}
                           >
                             <Check
@@ -361,12 +397,13 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Scenario</FormLabel>
-              <Popover>
+              <Popover open={openCombobox4} onOpenChange={onComboboxOpenChange4}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant="outline"
                       role="combobox"
+                      aria-expanded={openCombobox4}
                       className={cn(
                         "w-[200px] justify-between",
                         !field.value && "text-muted-foreground"
@@ -393,6 +430,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                             key={scenario.value}
                             onSelect={() => {
                               form.setValue("scenario", scenario.value);
+                              setOpenCombobox4(false);
                             }}
                           >
                             <Check
@@ -458,14 +496,13 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                             onValueChange={setInputValue}
                           />
                           <CommandGroup className="max-h-[145px] overflow-auto">
-                            {frameworks.map((framework) => {
-                              const isActive =
-                                selectedValues.includes(framework);
+                            {focuses.map((focus) => {
+                              const isActive = selectedValues.includes(focus);
                               return (
                                 <CommandItem
-                                  key={framework.value}
-                                  value={framework.value}
-                                  onSelect={() => toggleFramework(framework)}
+                                  key={focus.value}
+                                  value={focus.value}
+                                  onSelect={() => toggleFramework(focus)}
                                 >
                                   <Check
                                     className={cn(
@@ -473,13 +510,11 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
                                       isActive ? "opacity-100" : "opacity-0"
                                     )}
                                   />
-                                  <div className="flex-1">
-                                    {framework.label}
-                                  </div>
-                                  <div
+                                  <div className="flex-1">{focus.label}</div>
+                                  {/* <div
                                     className="h-4 w-4 rounded-full"
-                                    style={{ backgroundColor: framework.color }}
-                                  />
+                                    style={{ backgroundColor: focus.color }}
+                                  /> */}
                                 </CommandItem>
                               );
                             })}
