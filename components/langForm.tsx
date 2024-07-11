@@ -157,6 +157,7 @@ export function LangForm({ className }: React.ComponentProps<"form">) {
     form.setValue("learningFocus", values);
   };
 
+  // TODO: Could not figure out how to use one variable for all form items. Need to refactor. These facilitate closing the popover menu on select. 
   const [openCombobox, setOpenCombobox] = React.useState(false);
   const onComboboxOpenChange = (value: boolean) => {
     inputRef.current?.blur(); // HACK: otherwise, would scroll automatically to the bottom of page
