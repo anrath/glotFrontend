@@ -7,6 +7,7 @@ export default function Home() {
     <div className="content-center m-auto flex">
       <div>
         <h1>Home Page</h1>
+        <a href="/chat/1">Click here for current content</a>
       </div>
       {/* <div className="p-10">
         <LangForm />
